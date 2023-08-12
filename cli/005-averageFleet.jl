@@ -21,7 +21,7 @@ ANSAvg = plot(scatterpolar(
     marker=attr(size=:frequency, sizeref=0.05), mode="lines"
 ))
 
-open("docs/assets/avgFleet/ANSAvg.html", "w") do io
+open("docs/_includes/ANSAvg.html", "w") do io
     PlotlyBase.to_html(io, ANSAvg.plot)
 end
 
@@ -36,6 +36,6 @@ OPSAvg = plot(scatterpolar(
     marker=attr(size=:frequency, sizeref=0.05), mode="lines"
 ))
 
-open("docs/assets/avgFleet/OPSAvg.html", "w") do io
+open("docs/_includes/OPSAvg.html", "w") do io
     PlotlyBase.to_html(io, OPSAvg.plot)
 end
