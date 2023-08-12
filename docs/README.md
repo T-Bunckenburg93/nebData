@@ -1,5 +1,8 @@
-# Please start here
+# Welcome To my Insights of the game [Nebulous Fleet Command](https://steamcommunity.com/app/887570). 
 
-Welcome, and thanks for choosing our product.
+Here I'm trying to find interesting insight to showcase my work in Data and Analytics. 
 
-If you want to dive right in, try our [quick start tutorial](./). 
+to begin, here are some charts of the average fleet composition
+
+{% include docs/assets/avgFleet/ANSAvg.html %}
+{% include docs/assets/avgFleet/OSPAvg.html %}
