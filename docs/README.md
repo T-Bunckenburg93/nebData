@@ -5,4 +5,4 @@ Here I'm trying to find interesting insight to showcase my work in Data and Anal
 to begin, here are some charts of the average fleet composition
 
 {% include  ANSAvg.html %}
-{% include  _includes/OSPAvg.html %}
+{% include  OSPAvg.html %}
