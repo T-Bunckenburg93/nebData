@@ -25,6 +25,9 @@ open("docs/_includes/ANSAvg.html", "w") do io
     PlotlyBase.to_html(io, ANSAvg.plot)
 end
 
+PlotlyJS.savefig(ANSAvg, "docs/assets/avgFleet/ansAvgFleet.png")
+
+
 OSP=sort(filter(x->x.faction == "OSP",hullCnt),:count)
 push!(OSP,OSP[1,:])
 
@@ -39,3 +42,5 @@ OPSAvg = plot(scatterpolar(
 open("docs/_includes/OSPAvg.html", "w") do io
     PlotlyBase.to_html(io, OPSAvg.plot)
 end
+
+savefig(OPSAvg, "docs/assets/avgFleet/ospAvgFleet.png")
