@@ -13,7 +13,7 @@ hullCnt
 ANS=sort(filter(x->x.faction == "ANS",hullCnt),:count)
 push!(ANS,ANS[1,:])
 
-plot(scatterpolar(
+ANSAvg = plot(scatterpolar(
     ANS,
     r=:count,
     theta=:HullKey,
@@ -21,13 +21,21 @@ plot(scatterpolar(
     marker=attr(size=:frequency, sizeref=0.05), mode="lines"
 ))
 
+open("docs/assets/avgFleet/ANSAvg.html", "w") do io
+    PlotlyBase.to_html(io, ANSAvg.plot)
+end
+
 OSP=sort(filter(x->x.faction == "OSP",hullCnt),:count)
 push!(OSP,OSP[1,:])
 
-plot(scatterpolar(
+OPSAvg = plot(scatterpolar(
     OSP,
     r=:count,
     theta=:HullKey,
     color=:faction,
     marker=attr(size=:frequency, sizeref=0.05), mode="lines"
 ))
+
+open("docs/assets/avgFleet/OPSAvg.html", "w") do io
+    PlotlyBase.to_html(io, OPSAvg.plot)
+end
