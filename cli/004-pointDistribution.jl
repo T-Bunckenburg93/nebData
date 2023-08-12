@@ -60,7 +60,7 @@ ylabel!("win/Loss")
 
 p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,)
 
-savefig(p,"charts/pointEffectiveness/$hullString.png") 
+savefig(p,"docs/assets/pointEffectiveness/$hullString.png") 
 p
 end
 hullEffectiveness(gdf[12])
