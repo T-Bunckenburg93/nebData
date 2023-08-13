@@ -35,7 +35,7 @@ function shipDist(stacked)
     hullNames = names(c)
 
 
-    f = Figure()
+    f = Figure(resolution = (800, 600))
     Axis(   f[1, 1],
             title = "Hull counts across games",
             yticks = ((1:size(c,1)),  (hullNames)),
@@ -63,6 +63,9 @@ end
 ANSAvg= shipDist(filter(x->x.HullKey ∈ ANSShips,stacked))
 OSPAvg = shipDist(filter(x->x.HullKey ∈ OSPShips,stacked))
 
+
+save("docs/assets/avgFleet/ANSHullDensity.png", ANSAvg)
+save("docs/assets/avgFleet/OSPHullDensity.png", OSPAvg)
 
 # ok so now what are the average values ?
 
