@@ -43,6 +43,20 @@ As we can see, there seems to be a good mix of capital ships and suporting ships
 Looking at the distribution of the hulls in a fleet, we can view this with a density estimate:
 
 ![alt text](assets/avgFleet/ANSHullDensity.png "ANS Hull Density")
+
+
+
 ![alt text](assets/avgFleet/OSPHullDensity.png "OSP Hull Density")
 
-Yea Nice. Hey so this is a good start! 
+## Win Rate
+
+Finally, the win rate of these two fations:
+
+| Faction                   | Wins               | Win PCt |
+| ---------------------- | ------------------ | ------ |
+| ANS                | 482 | 0.4725   |
+| OSP                | 538 | 0.5274    |
+
+
+Pretty even, but a slight lean towards OSP. I have a few thoughts around this, mainly that most newer players start with ANS, so that could lead to the reason why ANS is slightly lower. By the time players get to OSP, they are comfortable with jamming, scouting etc.. 
+

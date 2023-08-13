@@ -71,4 +71,28 @@ for i in gdf
 hullEffectiveness(i)
 end
 
+# ok so who wins more??
 
+ggdf = groupby(df,[:GameKey])
+
+winner = fill("",size(ggdf,1))
+
+for i in 1:size(ggdf,1)
+
+    winner[i] = ggdf[i].winningFaction[1]
+end
+
+x = countmap(winner)
+
+
+keys(x)
+values(x)
+
+vals = collect(values(x))
+labs = collect(keys(x))
+
+Wins = DataFrame(faction = labs,wins = vals)
+
+Wins.pct = Wins.wins ./ sum(Wins.wins)
+
+Wins

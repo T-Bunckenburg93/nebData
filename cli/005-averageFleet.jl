@@ -3,6 +3,10 @@ using JLD2, Dates, DataFrames, StatsBase, ProgressMeter, CairoMakie, CSV
 df = load_object("BattleReports/allGameData.jld2")
 df
 
+string_values = ["Win", "loss"]
+df.win= (df.faction .== df.winningFaction)
+df.WinLoss = [bit ? string_values[1] : string_values[2] for bit in df.win]
+
 df.HullKey = replace.(df.HullKey,"Stock/"=> "")
 
 gameHull = combine(groupby(df,[:GameKey,:HullKey]),nrow=>:count)
@@ -40,7 +44,7 @@ function shipDist(stacked)
             title = "Hull counts across games",
             yticks = ((1:size(c,1)),  (hullNames)),
             xlabel = "Hull Count",
-            limits = ((nothing,20), nothing)
+            limits = ((nothing,15), nothing)
             
         )
     f
@@ -75,51 +79,3 @@ games_hulls = coalesce.(transposed_df, 0)
 avg = describe(select(games_hulls,Not(:GameKey)))[:,[1,2,4]]
 
 CSV.write("avg.csv", avg)
-
-# with_theme(demofigure, theme_dark())
-
-
-
-
-
-# This approach is baaaad
-hullCnt = combine(groupby(df,[:HullKey,:faction]),nrow => :count)
-size(unique(df.GameKey),1)
-hullCnt.count = hullCnt.count  ./ size(unique(df.GameKey),1)
-
-hullCnt
-
-ANS=sort(filter(x->x.faction == "ANS",hullCnt),:count)
-push!(ANS,ANS[1,:])
-
-ANSAvg = plot(scatterpolar(
-    ANS,
-    r=:count,
-    theta=:HullKey,
-    color=:faction,
-    marker=attr(size=:frequency, sizeref=0.05), mode="lines"
-))
-
-open("docs/_includes/ANSAvg.html", "w") do io
-    PlotlyBase.to_html(io, ANSAvg.plot)
-end
-
-PlotlyJS.savefig(ANSAvg, "docs/assets/avgFleet/ansAvgFleet.png")
-
-
-OSP=sort(filter(x->x.faction == "OSP",hullCnt),:count)
-push!(OSP,OSP[1,:])
-
-OPSAvg = plot(scatterpolar(
-    OSP,
-    r=:count,
-    theta=:HullKey,
-    color=:faction,
-    marker=attr(size=:frequency, sizeref=0.05), mode="lines"
-))
-
-open("docs/_includes/OSPAvg.html", "w") do io
-    PlotlyBase.to_html(io, OPSAvg.plot)
-end
-
-savefig(OPSAvg, "docs/assets/avgFleet/ospAvgFleet.png")
