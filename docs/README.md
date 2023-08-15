@@ -1,9 +1,10 @@
-## Welcome To my Insights of the game [Nebulous Fleet Command](https://steamcommunity.com/app/887570). 
+Welcome To my Insights of the game [Nebulous Fleet Command](https://steamcommunity.com/app/887570). 
 
 Here I'm trying to find insights and analysis of the artifacts of Nebulous (neb) and see what value I can pull out of this to showcase my work in Data and Analytics. I'm doing this using the [Julia Programming Language](https://julialang.org/) as I see it as an exciting language that applies well to data science. 
 
-With these posts, I'm going to try and delve insight from both what I see in the data, as well as my knowledge as an ok Neb player. I'm silver, vaugely understand how Ewar works and can use heading commands badly. 
+With these posts, I'm going to try and delve insight from both what I see in the data, as well as my knowledge as an ok Neb player. I'm silver, vaugely understand how Ewar works and can use heading commands badly. I also have a 68% win rate on NebKillBoard. Not great, not terrible.
 
+While I don't have a specific goal in mind, I'm hoping that what you read in here, might make you a better Neb Player, or at least will be interesting! 
 
 ## Posts
 
