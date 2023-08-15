@@ -80,7 +80,7 @@ Finally, the win rate of these two fations:
 
 Doing a Chi Squared test, which for non stats people evaluates the likelihood that the the factions are balanced (aka the win rate should be exactly or close to 50:50), the p value is 0.0795
 
-Convention would be to reject the p value if it is under 0.05, or 5%. We're above this, but not by much, 
+Convention would be to reject the p value if it is under 0.05, or 5%. We're above this, but not by much. More battle reports would help to see if this where true.
 
 While there is a slight lean towards OSP, I think the primary reason is that most newer players start with ANS as the tutorial is ANS focused, so that could lead to the reason why ANS is slightly lower. By the time players get to OSP, they are comfortable with jamming, scouting and so on and don't bring lose the game in the fleet editor.
 
@@ -92,7 +92,13 @@ On that, there seems to be a common theme amongst new players to put all the poi
 
 While this post isn't the most meaning or interesting as I would like it to be, I've taken a look at what the average game of Neb looks like. I've also set up all the stuff around putting this up on the web, parsed the data and played a bit of Nebulous, and I wanted something to show for it.
 
-I've got what I think is jucier, and more interesting to the average Neb Player coming soon, but its a bit unpolished and 
+I've got no huge takeaway from hul Composition, but I think seeing that there doesn't seem to be a huge statistical difference between OSP and ANS. If there is I think it is the result of newer players more likely to enter multiplayer via ANS.  
 
 
+## Whats next
 
+I've got what I think is jucier, and more interesting to the average Neb Player coming soon, but its a bit unpolished and I really wanted to get something out there. 
+
+In the meantime, here is a chart showing the Win/Loss ratio of the Keystone hull, compared to its point cost. I'm doing an analysis of how many points you should put into a hull and (hopefully) why:
+
+![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
