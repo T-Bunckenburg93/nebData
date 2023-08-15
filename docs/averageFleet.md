@@ -1,8 +1,10 @@
 # What does the average Neb game look like?
 
-I've recently spent a bit of work parsing the data from a vast amount of battle reports, and the things I could do with this data was quite overwelming. So Ive decided to start small. 
+I've recently spent a bit of work parsing the data from a vast amount of battle reports, and the things I could do with this data was quite overwelming. So I've decided to start small. 
 
 I want to know what an average game of Neb looks like in a few spaces. While I could look at things like, average game time, I'm not too interested in that minutia. I decided to start with fleet composition across all players, and the win rates between OSP and ANS.   
+
+
 Lets get to it!
 
 
@@ -41,15 +43,17 @@ As we can see, there seems to be a good mix of capital ships and suporting ships
 * Looots of haulers.
 * Containers are less than common. I've seen them a lot, so this was suprising. 
 
+
+
 So if we were to pick a random game, it wouldn't be too far fetched to think that it could look something like this:
 
-ANS would have a Solomon, an Axford, two Vauxhalls, two Keystones, two Raines, and three Sprinters. 
+* ANS would have a Solomon, an Axford, two Vauxhalls, two Keystones, two Raines, and three Sprinters. 
 
-OSP would have two Ocellos, three Lineships/Bulk Haulers, three Feeders/Monitors, two Tugs and three Shuttles. 
+* OSP would have two Ocellos, three Lineships/Bulk Haulers, three Feeders/Monitors, two Tugs and three Shuttles. 
 
-One of my projects as a part of this, is to build a neural network that can predict the outcome of the battle based off the hulls provided. Ideally this would take into account how different roles might complement each other, while 4 container launchers may not be viable. 
+*One of my projects as a part of this, is to build a neural network that can predict the outcome of the battle based off the hulls provided. Ideally this would take into account how different roles might complement each other, while 4 container launchers may not be viable.*
 
-I would like to see what the likely outcome of the average fleets would be.  
+*I would like to see what the likely outcome of the average fleets would be.*
 
 ### Hull Density
 
@@ -64,7 +68,8 @@ Looking at the distribution of the hulls in a fleet, we can view this with a den
 ![alt text](assets/avgFleet/OSPHullDensity.png "OSP Hull Density")
 
 
-I don't really have too many thoughts on these. This chart is more descriptive than insightful. You can see which hulls are used in swarms. Because I'm looking at a match perspective, you also see where they are not used, ie when there are zero. 
+I don't really have too many thoughts on these. This chart is more descriptive than insightful. You can see which hulls are used in swarms.  
+Because I'm looking at a match perspective, you also see where they are not used, ie when there are zero. 
 
 *this chart initally confused me because I thought that games with 3 Solomons were somewhat common* 
 
@@ -99,6 +104,8 @@ I've got no huge takeaway from hul Composition, but I think seeing that there do
 
 I've got what I think is jucier, and more interesting to the average Neb Player coming soon, but its a bit unpolished and I really wanted to get something out there. 
 
-In the meantime, here is a chart showing the Win/Loss ratio of the Keystone hull, compared to its point cost. I'm doing an analysis of how many points you should put into a hull and (hopefully) why:
+In the meantime, here is a chart showing the Win/Loss ratio of the Keystone hull compared to its point cost, and an estimate of the viability of this hull at that point cost.
+
+I'm doing an analysis of how many points you should put into a hull and (hopefully) why:
 
 ![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
