@@ -33,8 +33,8 @@ winH = fit(Histogram, w.pointCost, start:step:finish).weights
 lossH = fit(Histogram, l.pointCost, start:step:finish).weights
 
 # Get the difference between wins and losses
-# Multiply it by the sum of the square roots of the W/L rates, and squareRoot it again  
-# This visually gave reasonable looking values, else the count of ships in larger buckets dominated 
+# Multiply it by the sum of the sqrt of the W/L rates, and sqrt it again  
+# the second sqrt meant the count of ships in larger buckets dominated 
 rate = (winH .- lossH ) .* sqrt.(sqrt.(winH) .+ sqrt.(lossH) )
 
 # And normalise it to -1 and 1 by finding the max extreme value. 
@@ -66,20 +66,55 @@ I'm unsure of how viable the Sprinter is for missiles from this, but it seems li
 
 While the Raines frigate seems to operate in a similar space as the Sprinter, it seems like you do have to put some points into a Raines for it to become viable. Raines under 300 points are not as effective as they are over 300 points but this extra investment seems well woth it. Over 500 points they seem to become less viable, though not by a huge amount. 
 
+
 I suspect this is where the 4x Jammers/Sarissa builds come in, and they become quite costly to get the power requirements for the 4th item.
 
-while I'm pretty sure that sweet spot for jammers is 4(?) I don't know if putting them all on a raines is the most effective
+while I'm pretty sure that sweet spot for jammers is 4(?) I don't know if putting them all on a Raines is the most effective use of points.
+
+Personally I often run a Raines swarm and with about 380 points each, I get 14x250mm cannons, Jamming, radar and ok PD, and find that the volume of ships is often what makes it effective.   
+Cheaper hulls = More ships = More firepower
 
 
+There also seems to be a spike of Raines at the 1000+ pt space, which is missile builds. They seem to be equally viable, with investments up to 1200 points also viable. A fleet in this space might be 2 Raines, each with a missile programming bus array to get to 4 missiles, which with 2 Raines allows you to have plently volleys of 8 SH2 volleys which can take down solo ships. the extra 800 pts allows you to bring other utility functions, with a scout or two on top.
 
+While there certainly may be other build, this is an example that I have seen work, and the data would say seems unviable. 
 
+### Keystone Destroyer
 
-
-
-
-
-### Sprinter Corvette
-
-![alt text](assets/pointEffectiveness//Sprinter_Corvette.png "Sprinter Point Viability")
+![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
 
 #### Thoughts and musings
+
+Now this is an interesting one! Keystones seem to really shine in the 500-700 range, but above this their viability seems to really fall off. There does see to be a slight bump up just at the 1000 pts mark, but adding more points seems to drop off again. I think my take on this is that the more beams or rails you have, generally the better.
+
+This is a case where I would like to break up the hulls into two based on the spinal mount, to then see if there are any functional differences between the two. 
+
+I don't have too many more thoughts on this, other than if you have a DD over 700 points, do you think your feet would be better if you had 2? 
+
+### Vauxhall Light Cruiser
+
+![alt text](assets/pointEffectiveness/Vauxhall_Light_Cruiser.png "Vauxhall Point Viability")
+
+#### Thoughts and musings
+
+Now the Vauxhall is an interesting hull, and possibly one of the hardest hulls for a beginner to play. If running three of them, similar to TF Birch, you need to have a good knowledge of the opposition hulls, as you need to know what fights you can take, and what fights you need to run away from. If you do the latter badly, you can get pounded into dust. 
+
+Personally while I do quite like Birch, I find it very hard to get a good mix of jamming, locks, PD and firepower in 3 x 1000 pt Vauxhalls. While maybe I'm bad, it seems like the data backs this up. 
+
+Vauxhalls above this seem to perform better, likely with either a missile backpack and/or support ships. This seems to stop at 1500 pts, likely because the lack of scouts. I'm assuming that most ships in this space operate as a pair. 
+
+Finally there are the 3000 point missile cruisers. While they do have success, they still don't seem super viable. Again, and I'm feeling like a bit of a stuck record here, I think this is due to the lack of support ships. If you bring one of these, you are either entirely dependant on your team for scouting missile targets or you're putting your entire fleet at risk to get targets yourself. 
+
+*This isn't to say you shouldn't bring this build. It does work, but it loses more games than it wins. The reasons as to why are most likely numerous, and I can't really say why a hull wins or loses, especially at just the hull cost.*
+
+
+### Axford Heavy Cruiser
+
+![alt text](assets/pointEffectiveness/Axford_Heavy_Cruiser.png "Axford Point Viability")
+
+#### Thoughts and musings
+
+
+
+
+
