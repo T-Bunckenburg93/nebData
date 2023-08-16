@@ -19,7 +19,7 @@ Then there is measure I have tried to derive from the top chart of point viabili
 
 Becasue they are normalised to the hull, you shouldn't compare these across hulls. This is designed to be a measure of how viable each hull is in the unknown soup of whatever else is brought to the battlefield. 
 
-Finally, in the header, there is a winrate. I'm unsure if I should keep this in, as it is biased against the win rate with a slight tilt to OSP. I'm also unsure if it applies equally to smaller ships and bigger ships. I've put it in now, but I have mixed feelings and may take it out if I feel its misleading.  
+Finally, in the header, there is a winrate. I'm unsure if I should keep this in, as it is biased against the win rate with a slight tilt to OSP. I'm also unsure if it applies equally to smaller ships and bigger ships. Swarms that win games will push it up more than single ships that are equally effective. I've put it in for now, but I have mixed feelings and may take it out if I feel its misleading.  
 
 ### Point viability formula
 The formula I've used to calculate point viability is described below
@@ -45,24 +45,24 @@ rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 
 I hope this makes some sense! I've got no mathematical  justification for why I chose the transformation I did, except it seems to look reasonable useful. 
 
-## ANS Hulls
+# ANS Hulls
 
-### Sprinter Corvette
+## Sprinter Corvette
 
 ![alt text](assets/pointEffectiveness/Sprinter_Corvette.png "Sprinter Point Viability")
 
-#### Thoughts and musings
+### Thoughts and musings
 Sprinters seem to be very effective hulls. Most prominent in the 200-400 point bands, they excel as support ships, PD escorts, spotters and jamboats. I suspect they have such a high win rate because they are very effective support ships. The more scouts you have, the more you can plan and premept your oppositions actions. 
 
 Also sprinter swarms can get very close to you undetected, ( I'm not a radar expert but I think about ~4k before you can detect them ), can all mount a 250 cannon, a jammer/bullseye with ample PD on the side mounts. I don't think there are any fleets that wouldn't be made better by adding an additional sprinter into the mix.  
 
 I'm unsure of how viable the Sprinter is for missiles from this, but it seems like the sweet spot for a Sprinter is between 200-400 pts. While you can go higher, it appears that the viability diminishes. Why have a single 600 pt Sprinter when you could have twice the scouting power with 2x 300 pt Sprinters?
 
-### Raines Frigate
+## Raines Frigate
 
 ![alt text](assets/pointEffectiveness/Raines_Frigate.png "Raines Point Viability")
 
-#### Thoughts and musings
+### Thoughts and musings
 
 While the Raines frigate seems to operate in a similar space as the Sprinter, it seems like you do have to put some points into a Raines for it to become viable. Raines under 300 points are not as effective as they are over 300 points but this extra investment seems well woth it. Over 500 points they seem to become less viable, though not by a huge amount. 
 
@@ -79,11 +79,11 @@ There also seems to be a spike of Raines at the 1000+ pt space, which is missile
 
 While there certainly may be other build, this is an example that I have seen work, and the data would say seems unviable. 
 
-### Keystone Destroyer
+## Keystone Destroyer
 
 ![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
 
-#### Thoughts and musings
+### Thoughts and musings
 
 Now this is an interesting one! Keystones seem to really shine in the 500-700 range, but above this their viability seems to really fall off. There does see to be a slight bump up just at the 1000 pts mark, but adding more points seems to drop off again. I think my take on this is that the more beams or rails you have, generally the better.
 
@@ -91,11 +91,11 @@ This is a case where I would like to break up the hulls into two based on the sp
 
 I don't have too many more thoughts on this, other than if you have a DD over 700 points, do you think your feet would be better if you had 2? 
 
-### Vauxhall Light Cruiser
+## Vauxhall Light Cruiser
 
 ![alt text](assets/pointEffectiveness/Vauxhall_Light_Cruiser.png "Vauxhall Point Viability")
 
-#### Thoughts and musings
+### Thoughts and musings
 
 Now the Vauxhall is an interesting hull, and possibly one of the hardest hulls for a beginner to play. If running three of them, similar to TF Birch, you need to have a good knowledge of the opposition hulls, as you need to know what fights you can take, and what fights you need to run away from. If you do the latter badly, you can get pounded into dust. 
 
@@ -108,13 +108,30 @@ Finally there are the 3000 point missile cruisers. While they do have success, t
 *This isn't to say you shouldn't bring this build. It does work, but it loses more games than it wins. The reasons as to why are most likely numerous, and I can't really say why a hull wins or loses, especially at just the hull cost.*
 
 
-### Axford Heavy Cruiser
+## Axford Heavy Cruiser
 
 ![alt text](assets/pointEffectiveness/Axford_Heavy_Cruiser.png "Axford Point Viability")
 
-#### Thoughts and musings
+### Thoughts and musings
 
+This was suprising to me, as I thought the Axford was one of the more sucessful hulls, espcially at the 1500 level. I personally have several fleets with axfords and feel like I have more success with them than what I am seeing here. Still the numbers don't lie, and I'm left to wonder why. 
 
+Axefords become marginally more viable at the 2000 point mark, and I suspect if this is the Hemlock stlye builds coming out, or anything with a competent missile backpack + gun/beams
 
+Beyond that, the Axford missile boat at 3000 pts is less viable and I think for the same reasons as the 3000 pt Vaux. You're very relaint on your team for scouting. 
+
+## Solomon Battleship
+
+![alt text](assets/pointEffectiveness/Solomon_Battleship.png "Solomon Point Viability")
+
+### Thoughts and musings
+
+The Solomon is an interesting Hull. I've seen it be devestatingly effective, as well as being an absolute noob trap. While there are no glaring sweet spots, there seem to be a viable build at 2300 pts. I think this could be the optimal sweet spot for a solomon, as it gives you plenty of points for escorts.
+
+Unsuprisingly (to me at least), the 3000 pt solomon is the least viable. I think this comes down to this being **the** noob trap, and from a mechanics perspective, no escorts, combined with the largest radar signature makes this build an absolute target.
+
+Like the Keystone, doing a seperate comparison on beams vs guns would be interesting, and might be something for a future post. 
+
+Personally I don't mind a good Overwatch Solomon, though I play them much less than I have previously. Escorts are a must, else you're very vulnerable. I think the biggest takeaway is that you can put too many points into it, and these points don't translate well into making the solomon any more effective.
 
 
