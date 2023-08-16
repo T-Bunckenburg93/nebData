@@ -4,11 +4,12 @@
 
 While I don't think anyone would disagree with this on the face value, as you need to spend points to buy guns/missiles/etc to shoot ships, I did wonder if there were optimal amounts of points to spend on a hull. 
 
-For example, if I seriously kit out two gun Vauxhalls, is this more effective than have three less kitted Vaux's, or two Vaux's and several escorts? Is there a point where we can see in the data that spending too much, and putting too many eggs in one basket is more likely to be detrimental? 
+For example, if I seriously kit out two gun Vauxhalls, is this more effective than have three less kitted Vaux's, or two Vaux's and several escorts?  
+Is there a point where we can see in the data that spending too much, and putting too many eggs in one basket is more likely to be detrimental? 
 
-Now a bit of a note on this and the conclusions I'm going to make here. This isn't to say that your build is bad because you're spending too much points on a Vauxhall. The great thing about Nebulous is that the meta is still growing and developing, and none of the hulls exhibit a huge win loss difference, meaning that people also can win with hulls that cost that much. It just happens less, which makes it less **viable**. 
+Now a bit of a note on this and the conclusions I'm going to make here. This isn't to say that your build is bad because you're spending too much points on a Vauxhall. The great thing about Nebulous is that the meta is still growing and developing, and none of the hulls exhibit a huge win loss difference (except one), meaning that people also can win with hulls that cost that much. It just happens less, which makes it less **viable**. 
 
-While points are somewhat crude, as they don't take into account the difference between missiles and guns and lasers, there did seem to be some insight that you can take away from them.  
+While points are a somewhat crude measure, as they don't take into account the difference between missiles and guns and lasers, there did seem to be some insight that you can take away from them.  
 Anyway, without further ado, lets get to it!
 
 ### Quick word on how to read these charts:
@@ -29,16 +30,19 @@ The formula I've used to calculate point viability is described below
 
 # Get the Win/Loss weights from the histogram
 # These are the values we see in the top chart
+
 winH = fit(Histogram, w.pointCost, start:step:finish).weights
 lossH = fit(Histogram, l.pointCost, start:step:finish).weights
 
 # Get the difference between wins and losses
 # Multiply it by the sum of the sqrt of the W/L rates, and sqrt it again  
 # the second sqrt meant the count of ships in larger buckets dominated 
+
 rate = (winH .- lossH ) .* sqrt.(sqrt.(winH) .+ sqrt.(lossH) )
 
 # And normalise it to -1 and 1 by finding the max extreme value. 
 # We still want to keep the default at zero, so not a min/max normalization
+
 rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 
 ```
@@ -138,6 +142,8 @@ Personally I don't mind a good Overwatch Solomon, though I play them much less t
 ## Conclusions
 
 Getting the right amount of points into a hull is hard. This post should be used as a guide, not as a rule, as there are many other factors beyond hull cost that go into winning a game. Building fleets to fit inside the numbers that I'm seeing here shouldn't be the aim, as things like team coordination, abilitiy and fleet synergy matter far more. Winning games in Nebulous is a complicated business, and sometimes you just get stomped because of the risks you take. 
+
+This post also fails at saying what are the best parts for the build, but unfortunately this isn't really in the battle report. 
 
 However, on this, I think I do have some takeaways:
 
