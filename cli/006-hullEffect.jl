@@ -13,6 +13,21 @@ gdf = groupby(df,[:faction,:HullKey])
 
 # wtf = filter(x->x.HullKey == "Stock/Shuttle" && x.pointCost > 2000,df)
 
+function removeOutliers_IQR(data,IQRthreshold)
+        
+    # Calculate the interquartile range (IQR)
+    q1 = quantile(data, 0.25)
+    q3 = quantile(data, 0.75)
+    iqr = q3 - q1
+
+    # Set a threshold for outlier removal (e.g., 1.5 times the IQR)
+    lower_bound = q1 - IQRthreshold * iqr
+    upper_bound = q3 + IQRthreshold * iqr
+
+    # Remove outliers
+    filtered_data = filter(x -> lower_bound <= x <= upper_bound, data)
+    return filtered_data
+end
 
 function hullEffectiveness(k)
 # k = gdf[2]
@@ -43,7 +58,7 @@ lossH = fit(Histogram, l.pointCost, start:step:finish).weights
 
 rate = ((winH .- lossH )) .* sqrt.(sqrt.(winH) .+ sqrt.(lossH) )
 
-rate = rate ./ max(maximum(rate),abs(minimum(rate)))
+rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 winRate = round(sum((winH .- lossH ))/size(k,1),digits = 3)
 
 stephis = stephist(k.pointCost, group = WinLoss, bins =start:step:finish ,title = "$hullString, Winrate = $winRate")
@@ -51,19 +66,19 @@ xlims!(start, finish)
 ylabel!("Count")
 
 # boxplot(zeros(Float64,size(k,1)),k.pointCost,outliers = false, orientation=:h, legend=false,whisker_width = 0.25,bar_width = 0.25)
-pointEffectiveness = plot(collect(start:step:finish)[2:end],rate,legend = false)
+pointEffectiveness = plot(collect(start:step:finish)[2:end],rateN,legend = false)
 
 xlims!(start, finish)
 ylims!(-1,1)
 xlabel!("Point Cost")
 ylabel!("win/Loss")
 
-
 p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,)
 
 savefig(p,"docs/assets/pointEffectiveness/$hullString.png") 
 p
 end
+
 hullEffectiveness(gdf[12])
 
 
@@ -71,3 +86,30 @@ for i in gdf
 hullEffectiveness(i)
 end
 
+
+
+# Scratch
+gdf[12]
+maximum(gdf[12].pointCost)
+
+
+
+A = filter(x->x.pointCost == 3000.0 && x.HullKey == "Stock/Bulk Feeder",df)
+# Example dataset with outliers
+data = gdf[12].pointCost
+
+function removeOutliers_IQR(data,IQRthreshold)
+        
+    # Calculate the interquartile range (IQR)
+    q1 = quantile(data, 0.25)
+    q3 = quantile(data, 0.75)
+    iqr = q3 - q1
+
+    # Set a threshold for outlier removal (e.g., 1.5 times the IQR)
+    lower_bound = q1 - IQRthreshold * iqr
+    upper_bound = q3 + IQRthreshold * iqr
+
+    # Remove outliers
+    filtered_data = filter(x -> lower_bound <= x <= upper_bound, data)
+    return filtered_data
+end
