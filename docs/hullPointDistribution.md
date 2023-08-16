@@ -1,4 +1,4 @@
-## Do points matter
+# Do points matter
 
 "The point distributon of a hull effect the likelihood of the hull participating in a wining team"
 
@@ -11,7 +11,7 @@ Now a bit of a note on this and the conclusions I'm going to make here. This isn
 While points are somewhat crude, as they don't take into account the difference between missiles and guns and lasers, there did seem to be some insight that you can take away from them.  
 Anyway, without further ado, lets get to it!
 
-#### Quick word on how to read these charts:
+### Quick word on how to read these charts:
 
 For each Hull, there are two charts. The top is a histogram of the win/loss by point value. I've done this for every hull I have stats on, so there are naturally higher values for smaller ships. 
 
@@ -21,8 +21,8 @@ Becasue they are normalised to the hull, you shouldn't compare these across hull
 
 Finally, in the header, there is a winrate. I'm unsure if I should keep this in, as it is biased against the win rate with a slight tilt to OSP. I'm also unsure if it applies equally to smaller ships and bigger ships. I've put it in now, but I have mixed feelings and may take it out if I feel its misleading.  
 
-
-the formula I've used to calculate point viability is described below
+### Point viability formula
+The formula I've used to calculate point viability is described below
 
 ```Julia
 #For each point band of 100 points
@@ -45,24 +45,24 @@ rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 
 I hope this makes some sense! I've got no mathematical  justification for why I chose the transformation I did, except it seems to look reasonable useful. 
 
-### ANS Hulls
+## ANS Hulls
 
-#### Sprinter Corvette
+### Sprinter Corvette
 
 ![alt text](assets/pointEffectiveness/Sprinter_Corvette.png "Sprinter Point Viability")
 
-##### Thoughts and musings
+#### Thoughts and musings
 Sprinters seem to be very effective hulls. Most prominent in the 200-400 point bands, they excel as support ships, PD escorts, spotters and jamboats. I suspect they have such a high win rate because they are very effective support ships. The more scouts you have, the more you can plan and premept your oppositions actions. 
 
 Also sprinter swarms can get very close to you undetected, ( I'm not a radar expert but I think about ~4k before you can detect them ), can all mount a 250 cannon, a jammer/bullseye with ample PD on the side mounts. I don't think there are any fleets that wouldn't be made better by adding an additional sprinter into the mix.  
 
 I'm unsure of how viable the Sprinter is for missiles from this, but it seems like the sweet spot for a Sprinter is between 200-400 pts. While you can go higher, it appears that the viability diminishes. Why have a single 600 pt Sprinter when you could have twice the scouting power with 2x 300 pt Sprinters?
 
-#### Raines Frigate
+### Raines Frigate
 
 ![alt text](assets/pointEffectiveness/Raines_Frigate.png "Raines Point Viability")
 
-##### Thoughts and musings
+#### Thoughts and musings
 
 While the Raines frigate seems to operate in a similar space as the Sprinter, it seems like you do have to put some points into a Raines for it to become viable. Raines under 300 points are not as effective as they are over 300 points but this extra investment seems well woth it. Over 500 points they seem to become less viable, though not by a huge amount. 
 
@@ -78,26 +78,8 @@ while I'm pretty sure that sweet spot for jammers is 4(?) I don't know if puttin
 
 
 
-#### Sprinter Corvette
+### Sprinter Corvette
 
 ![alt text](assets/pointEffectiveness//Sprinter_Corvette.png "Sprinter Point Viability")
 
-##### Thoughts and musings
-#### Sprinter Corvette
-
-![alt text](assets/pointEffectiveness//Sprinter_Corvette.png "Sprinter Point Viability")
-
-##### Thoughts and musings
-
-
-![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
-
-![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
-![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
-![alt text](assets/pointEffectiveness/Keystone_Destroyer.png "Keystone Point Viability")
-
-
-
-
-
-
+#### Thoughts and musings
