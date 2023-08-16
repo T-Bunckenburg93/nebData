@@ -1,4 +1,4 @@
-# Do points matter
+# Do points matter - ANS
 
 "The point distributon of a hull effect the likelihood of the hull participating in a wining team"
 
@@ -133,5 +133,24 @@ Unsuprisingly (to me at least), the 3000 pt solomon is the least viable. I think
 Like the Keystone, doing a seperate comparison on beams vs guns would be interesting, and might be something for a future post. 
 
 Personally I don't mind a good Overwatch Solomon, though I play them much less than I have previously. Escorts are a must, else you're very vulnerable. I think the biggest takeaway is that you can put too many points into it, and these points don't translate well into making the solomon any more effective.
+
+
+## Conclusions
+
+Getting the right amount of points into a hull is hard. This post should be used as a guide, not as a rule, as there are many other factors beyond hull cost that go into winning a game. Building fleets to fit inside the numbers that I'm seeing here shouldn't be the aim, as things like team coordination, abilitiy and fleet synergy matter far more. Winning games in Nebulous is a complicated business, and sometimes you just get stomped because of the risks you take. 
+
+However, on this, I think I do have some takeaways:
+
+* You can definately overbuild your fleets. Specially for Hulls like the Raines, the Keystone and the Solomon, more points don't often make the hull much more effective. 
+* Support ships are very effective. I think one of the more underatted parts of Neb is intelligence/vision. Maybe that comes under Ewar, but being able to keep eyes on more of the map allows you to make more informed tactical decisions. In this sense, support ships are a force multiplier for your team. For example, your intelligence might show 3 fleets on one side of the map, which allows 2 of your team mates to push D, and steamrolling the single fleet that tried to hold that side. In the battlespace, the intelligence you gained by having an extra Sprinter or shuttle was more effective than having a super accurate solomon. 
+
+* Single ship missile fleets seem underwelming? these fleet generally seem to consistently lose more than they win. I don't know why this might be the case, but it seemed to be a common theme across Vauxhalls and Axfords. 
+
+* The 3000 point Solomon seems like an objectively bad build that will lose aboout 65% of the time. 
+
+## Whats next
+
+I'm going to do OSP next, but It might be a touch longer. I've also got a rudimentry neural network to predict the outcome of a battle based on the hulls on either side. The only thing is, I need about 10x more battle reports that I currently have to feel confident in it. More would be appreciated! 
+
 
 

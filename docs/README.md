@@ -10,7 +10,7 @@ While I don't have a specific goal in mind, I'm hoping that what you read in her
 
 [What does the average Neb game look like?](averageFleet.md)  
   
-<!-- [Point Distributions of Hulls](hullPointDistribution.md)   -->
+[Point Distributions of Hulls - ANS](hullPointDistribution-ANS.md)  
 
 
 
