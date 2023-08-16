@@ -20,7 +20,7 @@ Then there is measure I have tried to derive from the top chart of point viabili
 
 Becasue they are normalised to the hull, you shouldn't compare these across hulls. This is designed to be a measure of how viable each hull is in the unknown soup of whatever else is brought to the battlefield. 
 
-Finally, in the header, there is a winrate. I'm unsure if I should keep this in, as it is biased against the win rate with a slight tilt to OSP. I'm also unsure if it applies equally to smaller ships and bigger ships. Swarms that win games will push it up more than single ships that are equally effective. I've put it in for now, but I have mixed feelings and may take it out if I feel its misleading.  
+Finally, in the header, there is a winrate. This is the number of wins / number of games this hull has been in. 
 
 ### Point viability formula
 The formula I've used to calculate point viability is described below

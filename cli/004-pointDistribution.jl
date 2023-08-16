@@ -44,7 +44,7 @@ lossH = fit(Histogram, l.pointCost, start:step:finish).weights
 rate = ((winH .- lossH )) .* sqrt.(sqrt.(winH) .+ sqrt.(lossH) )
 
 rate = rate ./ max(maximum(rate),abs(minimum(rate)))
-winRate = round(sum((winH .- lossH ))/size(k,1),digits = 3)
+winRate = round(sum((winH ))/size(k,1),digits = 3)
 
 stephis = stephist(k.pointCost, group = WinLoss, bins =start:step:finish ,title = "$hullString, Winrate = $winRate")
 xlims!(start, finish) 
@@ -63,7 +63,7 @@ p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,)
 savefig(p,"docs/assets/pointEffectiveness/$hullString.png") 
 p
 end
-hullEffectiveness(gdf[12])
+hullEffectiveness(gdf[2])
 
 
 for i in gdf
