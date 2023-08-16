@@ -47,7 +47,7 @@ rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 
 ```
 
-I hope this makes some sense! I've got no mathematical  justification for why I chose the transformation I did, except it seems to look reasonable useful. 
+I hope this makes some sense! I've got no mathematical  justification for why I chose the transformation I did, except it seems to look reasonably useful. 
 
 # ANS Hulls
 
