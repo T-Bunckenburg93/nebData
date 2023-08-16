@@ -147,7 +147,8 @@ This post also fails at saying what are the best parts for the build, but unfort
 
 However, on this, I think I do have some takeaways:
 
-* You can definately overbuild your fleets. Specially for Hulls like the Raines, the Keystone and the Solomon, more points don't often make the hull much more effective. 
+* You can definately overbuild your fleets. Specially for Hulls like the Raines, the Keystone and the Solomon, more points don't often make the hull much more effective.  
+
 * Support ships are very effective. I think one of the more underatted parts of Neb is intelligence/vision. Maybe that comes under Ewar, but being able to keep eyes on more of the map allows you to make more informed tactical decisions. In this sense, support ships are a force multiplier for your team. For example, your intelligence might show 3 fleets on one side of the map, which allows 2 of your team mates to push D, and steamrolling the single fleet that tried to hold that side. In the battlespace, the intelligence you gained by having an extra Sprinter or shuttle was more effective than having a super accurate solomon. 
 
 * Single ship missile fleets seem underwelming? these fleet generally seem to consistently lose more than they win. I don't know why this might be the case, but it seemed to be a common theme across Vauxhalls and Axfords. 
