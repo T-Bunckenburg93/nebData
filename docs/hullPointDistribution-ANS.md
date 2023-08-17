@@ -16,38 +16,9 @@ Anyway, without further ado, lets get to it!
 
 For each Hull, there are two charts. The top is a histogram of the win/loss by point value. I've done this for every hull I have stats on, so there are naturally higher values for smaller ships. 
 
-Then there is measure I have tried to derive from the top chart of point viability. This is a normalised (between -1 to 1) measure of how viable a hull is at for each band of cost. Positive values are mean the hull is more viable, while negative values mean the hull is less viable. These values are scaled by the win rate and the size of the sample to prevent outliers were there are 3 wins and no losses from dominating the chart. 
+Then there is the winrate at each 100 point range. Note that this will be skewed by smaller values.
 
-Becasue they are normalised to the hull, you shouldn't compare these across hulls. This is designed to be a measure of how viable each hull is in the unknown soup of whatever else is brought to the battlefield. 
-
-Finally, in the header, there is a winrate. This is the number of wins / number of games this hull has been in. 
-
-### Point viability formula
-The formula I've used to calculate point viability is described below
-
-```Julia
-#For each point band of 100 points
-
-# Get the Win/Loss weights from the histogram
-# These are the values we see in the top chart
-
-winH = fit(Histogram, w.pointCost, start:step:finish).weights
-lossH = fit(Histogram, l.pointCost, start:step:finish).weights
-
-# Get the difference between wins and losses
-# Multiply it by the sum of the sqrt of the W/L rates, and sqrt it again  
-# the second sqrt meant the count of ships in larger buckets dominated 
-
-rate = (winH .- lossH ) .* sqrt.(sqrt.(winH) .+ sqrt.(lossH) )
-
-# And normalise it to -1 and 1 by finding the max extreme value. 
-# We still want to keep the default at zero, so not a min/max normalization
-
-rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
-
-```
-
-I hope this makes some sense! I've got no mathematical  justification for why I chose the transformation I did, except it seems to look reasonably useful. 
+Finally, in the header, there is the total winrate. This is the number of wins / number of games this hull has been in. 
 
 # ANS Hulls
 

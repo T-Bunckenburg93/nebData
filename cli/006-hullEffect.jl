@@ -55,23 +55,31 @@ l = filter(x->x.win  == 0,k )
 winH = fit(Histogram, w.pointCost, start:step:finish,closed=:left).weights
 lossH = fit(Histogram, l.pointCost, start:step:finish,closed=:left).weights
 
-rate = ((winH .- lossH )) .* ((winH) .+ (lossH) )
-# rateN = (winH) ./ (winH .+ lossH)
+# rate = ((winH .- lossH )) .* ((winH) .+ (lossH) )
+rateN = (winH) ./ (winH .+ lossH)
+# if there are no values then middle
+replace!(rateN,NaN => 0.5)
 
-rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
+
+# rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 winRate = round(sum((winH *100  ))/size(k,1),digits = 2)
 
-stephis = stephist(k.pointCost, group = WinLoss, bins =start:step:finish,closed=:left ,title = "$hullString, Winrate = $winRate %")
+stephis = stephist(k.pointCost, group = WinLoss, bins =start:step:finish,closed=:left ,title = "$hullString, Total Winrate = $winRate %")
 xlims!(start, finish) 
-ylabel!("Count")
+xticks!(start-1:100:finish-1)
+ylabel!("Hull Count")
 
 # boxplot(zeros(Float64,size(k,1)),k.pointCost,outliers = false, orientation=:h, legend=false,whisker_width = 0.25,bar_width = 0.25)
 pointEffectiveness = plot(collect(start:step:finish)[2:end],rateN,legend = false)
 
 xlims!(start, finish)
-ylims!(-1,1)
+ylims!(0,1)
 xlabel!("Point Cost")
-ylabel!("Normalised Win/Loss")
+ylabel!("Win rate")
+xticks!(start-1:100:finish-1)
+yticks!(0:0.2:1)
+hline!([0.5 0.5])
+
 
 p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,)
 
@@ -80,6 +88,7 @@ p
 end
 
 hullEffectiveness(gdf[2])
+
 
 
 for i in gdf
@@ -97,6 +106,14 @@ maximum(gdf[12].pointCost)
 A = filter(x->x.pointCost == 3000.0 && x.HullKey == "Stock/Bulk Feeder",df)
 # Example dataset with outliers
 data = gdf[12].pointCost
+
+winH = fit(Histogram, data,closed=:left).weights
+
+
+z = winH ./ winH
+
+replace(z,NaN => 0.5)
+
 
 function removeOutliers_IQR(data,IQRthreshold)
         
