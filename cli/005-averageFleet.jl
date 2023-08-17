@@ -31,6 +31,7 @@ OSPShips = [
 
 
 function shipDist(stacked)
+
     set_theme!(theme_dark())
     transposed_df = unstack(stacked,  :GameKey, :HullKey, :value)
     games_hulls = coalesce.(transposed_df, 0)
@@ -38,31 +39,48 @@ function shipDist(stacked)
     c = eachcol(games_hulls)[2:end]
     hullNames = names(c)
 
+    hullSum = zeros(size(c,1))
+    for i in 1:size(c,1)
+        hullSum[i] = sum(c[i])
+    end
+
+    println(hullSum)
+
 
     f = Figure(resolution = (800, 600))
     Axis(   f[1, 1],
-            title = "Hull counts across games",
-            yticks = ((1:size(c,1)),  (hullNames)),
+            title = "Hull proportions across matches (all fleets)",
+            yticks = (collect((1:size(c,1)) .* 1.1),  string.(hullNames,", N = ",Int.(hullSum))),
             xlabel = "Hull Count",
-            limits = ((nothing,15), nothing)
+            limits = ((-.6,15), nothing)
             
         )
     f
+
     for i in size(c,1):-1:1
-        density!(
-                c[i], 
-                offset = i, 
-                color = (:slategray, 0.4),
-                npoints = 20,
-                strokewidth = 1, 
-                strokecolor = :White
-                # bandwidth = 0.1
-                )
+
+        # hist( c[i], bins = size(unique(c[i]),1), color = :red, strokewidth = 1, strokecolor = :black)
+
+
+        barplot!(
+            collect(keys(countmap(c[i]))),
+            collect(values(countmap(c[i]))) ./ maximum(collect(values(countmap(c[i])))), 
+            offset = i + i*0.1 , 
+            scale_to=1,
+            color = (:slategray, 0.4),
+            gap = 0,
+            strokewidth = 1, 
+            strokecolor = :White
+            # bandwidth = 0.1
+            )
+            # offst = offst + maximum(collect(values(countmap(c[i]))))
     end
     set_theme!()
     f
 end
 
+
+hist( c[i], bins = size(unique(c[i]),1), color = :red, strokewidth = 1, strokecolor = :black)
 
 ANSAvg= shipDist(filter(x->x.HullKey ∈ ANSShips,stacked))
 OSPAvg = shipDist(filter(x->x.HullKey ∈ OSPShips,stacked))
@@ -70,6 +88,10 @@ OSPAvg = shipDist(filter(x->x.HullKey ∈ OSPShips,stacked))
 
 save("docs/assets/avgFleet/ANSHullDensity.png", ANSAvg)
 save("docs/assets/avgFleet/OSPHullDensity.png", OSPAvg)
+
+c = filter(x->x.HullKey == "Raines Frigate",stacked).value
+values(countmap(c))
+
 
 # ok so now what are the average values ?
 

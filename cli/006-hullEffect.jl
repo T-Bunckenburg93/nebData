@@ -30,7 +30,6 @@ function removeOutliers_IQR(data,IQRthreshold)
 end
 
 function hullEffectiveness(k)
-# k = gdf[2]
 
 hullString = replace(k.HullKey[1],"Stock/"=> ""," "=> "_")
 
@@ -45,24 +44,24 @@ string_values = ["Win", "loss"]
 WinLoss = [bit ? string_values[1] : string_values[2] for bit in k.win]
 
 # get point limits
-start = minHullCost
+start = minHullCost +1 
 step = 100
-finish = maxHullCost + 100
+finish = maxHullCost + 101
 
 w = filter(x->x.win  == 1,k )
 l = filter(x->x.win  == 0,k )
 
 # get histograms of pointcosts for winning and losing
-winH = fit(Histogram, w.pointCost, start:step:finish).weights
-lossH = fit(Histogram, l.pointCost, start:step:finish).weights
+winH = fit(Histogram, w.pointCost, start:step:finish,closed=:left).weights
+lossH = fit(Histogram, l.pointCost, start:step:finish,closed=:left).weights
 
 rate = ((winH .- lossH )) .* ((winH) .+ (lossH) )
 # rateN = (winH) ./ (winH .+ lossH)
 
 rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
-winRate = round(sum((winH .- lossH ))/size(k,1),digits = 3)
+winRate = round(sum((winH *100  ))/size(k,1),digits = 2)
 
-stephis = stephist(k.pointCost, group = WinLoss, bins =start:step:finish ,title = "$hullString, Winrate = $winRate")
+stephis = stephist(k.pointCost, group = WinLoss, bins =start:step:finish,closed=:left ,title = "$hullString, Winrate = $winRate %")
 xlims!(start, finish) 
 ylabel!("Count")
 
@@ -80,7 +79,7 @@ savefig(p,"docs/assets/pointEffectiveness/$hullString.png")
 p
 end
 
-hullEffectiveness(gdf[12])
+hullEffectiveness(gdf[2])
 
 
 for i in gdf
