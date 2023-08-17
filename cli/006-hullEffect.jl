@@ -56,7 +56,8 @@ l = filter(x->x.win  == 0,k )
 winH = fit(Histogram, w.pointCost, start:step:finish).weights
 lossH = fit(Histogram, l.pointCost, start:step:finish).weights
 
-rate = ((winH .- lossH )) .* sqrt.(sqrt.(winH) .+ sqrt.(lossH) )
+rate = ((winH .- lossH )) .* ((winH) .+ (lossH) )
+# rateN = (winH) ./ (winH .+ lossH)
 
 rateN = rate ./ max(maximum(rate),abs(minimum(rate)))
 winRate = round(sum((winH .- lossH ))/size(k,1),digits = 3)
@@ -71,7 +72,7 @@ pointEffectiveness = plot(collect(start:step:finish)[2:end],rateN,legend = false
 xlims!(start, finish)
 ylims!(-1,1)
 xlabel!("Point Cost")
-ylabel!("win/Loss")
+ylabel!("Normalised Win/Loss")
 
 p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,)
 
