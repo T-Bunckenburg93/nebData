@@ -70,7 +70,7 @@ xticks!(start-1:100:finish-1)
 ylabel!("Hull Count")
 
 # boxplot(zeros(Float64,size(k,1)),k.pointCost,outliers = false, orientation=:h, legend=false,whisker_width = 0.25,bar_width = 0.25)
-pointEffectiveness = plot(collect(start:step:finish)[2:end],rateN,legend = false)
+pointEffectiveness = plot(collect(start:step:finish)[2:end],rateN,legend = false,xrot=45,)
 
 xlims!(start, finish)
 ylims!(0,1)
@@ -81,7 +81,7 @@ yticks!(0:0.2:1)
 hline!([0.5 0.5])
 
 
-p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,)
+p = plot(stephis, pointEffectiveness, layout=(2,1),size=(800,600),dpi=300,xrot=45,)
 
 savefig(p,"docs/assets/pointEffectiveness/$hullString.png") 
 p
