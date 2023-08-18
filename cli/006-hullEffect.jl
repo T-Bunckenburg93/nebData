@@ -29,9 +29,13 @@ function removeOutliers_IQR(data,IQRthreshold)
     return filtered_data
 end
 
-function hullEffectiveness(k)
+function hullEffectiveness(c)
+
+# k = removeOutliers_IQR(DataFrame(c),4)
+k = c
 
 hullString = replace(k.HullKey[1],"Stock/"=> ""," "=> "_")
+
 
 minHullCost = floor(minimum(k.pointCost)/100)*100
 maxHullCost = round(maximum(k.pointCost)/100)*100
@@ -87,7 +91,7 @@ savefig(p,"docs/assets/pointEffectiveness/$hullString.png")
 p
 end
 
-hullEffectiveness(gdf[2])
+hullEffectiveness(gdf[12])
 
 
 
@@ -115,11 +119,14 @@ z = winH ./ winH
 replace(z,NaN => 0.5)
 
 
+
+
+
 function removeOutliers_IQR(data,IQRthreshold)
         
     # Calculate the interquartile range (IQR)
-    q1 = quantile(data, 0.25)
-    q3 = quantile(data, 0.75)
+    q1 = quantile(data.pointCost, 0.25)
+    q3 = quantile(data.pointCost, 0.75)
     iqr = q3 - q1
 
     # Set a threshold for outlier removal (e.g., 1.5 times the IQR)
@@ -127,6 +134,9 @@ function removeOutliers_IQR(data,IQRthreshold)
     upper_bound = q3 + IQRthreshold * iqr
 
     # Remove outliers
-    filtered_data = filter(x -> lower_bound <= x <= upper_bound, data)
+    filtered_data = filter(x -> lower_bound <= x.pointCost <= upper_bound, data)
     return filtered_data
 end
+
+gdf[12]
+removeOutliers_IQR(DataFrame(gdf[12]),4)
