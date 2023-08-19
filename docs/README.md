@@ -12,7 +12,7 @@ While I don't have a specific goal in mind, I'm hoping that what you read in her
   
 [Point Distributions of Hulls - ANS](hullPointDistribution-ANS.md)  
 
-
+[Point Distributions of Hulls - OSP](hullPointDistribution-OSP.md)  
 
 ## Disclaimers and other FAQ 
 

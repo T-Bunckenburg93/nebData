@@ -7,16 +7,19 @@ While I don't think anyone would disagree with this on the face value, as you ne
 For example, if I seriously kit out two gun Vauxhalls, is this more effective than have three less kitted Vaux's, or two Vaux's and several escorts?  
 Is there a point where we can see in the data that spending too much, and putting too many eggs in one basket is more likely to be detrimental? 
 
-Now a bit of a note on this and the conclusions I'm going to make here. This isn't to say that your build is bad because you're spending too much points on a Vauxhall. The great thing about Nebulous is that the meta is still growing and developing, and none of the hulls exhibit a huge win loss difference (except one), meaning that people also can win with hulls that cost that much. It just happens less, which makes it less **viable**. 
+Now a bit of a note on this and the conclusions I'm going to make here. This isn't to say that your build is bad because you're spending too much points on a Vauxhall. The great thing about Nebulous is that the meta is still growing and developing, and none of the hulls exhibit a huge win loss difference (except one), meaning that people also can win with hulls that cost that much. It just happens less, which makes it less **viable**.
 
 While points are a somewhat crude measure, as they don't take into account the difference between missiles and guns and lasers, there did seem to be some insight that you can take away from them.  
+
+My only hope and takeaway would be that if you have a build that consistenly loses, and it loses more than it wins, then, then maybe reconsider that build.
+
 Anyway, without further ado, lets get to it!
 
 ### Quick word on how to read these charts:
 
 For each Hull, there are two charts. The top is a histogram of the win/loss by point value. I've done this for every hull I have stats on, so there are naturally higher values for smaller ships. 
 
-Then there is the winrate at each 100 point range. Note that this will be skewed by smaller values.
+Then there is the winrate at each 100 point range. Note that this will be skewed by smaller values, so for small values of the chart above, I would take with a grain of salt. 
 
 Finally, in the header, there is the total winrate. This is the number of wins / number of games this hull has been in. 
 
@@ -55,39 +58,31 @@ Beyond that, the Monitor doesn't seem to have any other strong points, but also 
 
 ### Thoughts and musings
 
-Ocellos are a very common ship. Being able to access ANS s
+Ocellos are a very common ship and are often taken by newer OSP players as they are most familar to ANS. Being able to access ANS stuff is appealling and often Ocellos are full of Sarissas and Auroas. Ocellos often feel like a jack of all trades, and to get the most out of your 'cello though, you gotta dump at least half your points into one to specialise. Dual Ocellos are a common fleet build and generally do ok, if built and handled well.
 
+## Bulk Hauler / Line Ships
 
-## Tugboat
-
-![alt text](assets/pointEffectiveness/Tugboat.png "Tugboat Point Viability")
-
-### Thoughts and musings
-
-hello
-
-
-## Tugboat
-
-![alt text](assets/pointEffectiveness/Tugboat.png "Tugboat Point Viability")
+![alt text](assets/pointEffectiveness/Bulk_Hauler.png "Line Ship Point Viability")
 
 ### Thoughts and musings
 
-hello
+Hulk haulers are probably the most intereting and OSP-like ship. There are a variety of ways to build these ships, but the most effective point range seems to be in the 700 - 1200 range. Again for most of the same reasons you don't want to stack all your points in one fleet for ANS. You need scouts to make the points you've stacked in the big ships work. 
 
+While I suspect that the less performative point range of 1300+ is because of the lack of scouts, its hard to make any conclusive comments about builds, as there are many liner builds. 
 
+Other than the 3k missile liner builds, which while ok, win slightly less games than they lose.
 
-## Tugboat
+## Container Hauler
 
-![alt text](assets/pointEffectiveness/Tugboat.png "Tugboat Point Viability")
+![alt text](assets/pointEffectiveness/Container_Hauler.png "Container Point Viability")
 
 ### Thoughts and musings
 
-hello
+Container liners are an interesting one, in that they kinda have to be 3k, else you suffer from a lack of missiles, or bad missiles. There is a little spike at 2800, which I assume is from having an escort/PD boat.
 
+I've never really played containers in MP so I don't have too many thoughts, but I think that this hull **needs** to be played as a team, and aside from horrific missile builds, there doesn't seem to be any bad builds based off of points alone. 
 
-
-
+Thats not to say that your build is good. 
 
 ## Conclusions
 
@@ -97,17 +92,19 @@ This post also fails at saying what are the best parts for the build, but unfort
 
 However, on this, I think I do have some takeaways:
 
-* You can definately overbuild your fleets. Specially for Hulls like the Raines, the Keystone and the Solomon, more points don't often make the hull much more effective.  
+* You can definately overbuild your fleets, but OSP needs to use shuttles. They are cheap and contribute greatly to the win rate. Unless you have a specific build and synergy with another player, I can't think why you wouldn't have at least 1 shuttle in your fleet. 
 
-* Support ships are very effective. I think one of the more underatted parts of Neb is intelligence/vision. Maybe that comes under Ewar, but being able to keep eyes on more of the map allows you to make more informed tactical decisions. In this sense, support ships are a force multiplier for your team. For example, your intelligence might show 3 fleets on one side of the map, which allows 2 of your team mates to push D, and steamrolling the single fleet that tried to hold that side. In the battlespace, the intelligence you gained by having an extra Sprinter or shuttle was more effective than having a super accurate solomon. 
+* Liners are strong! Tugs are strong! OSP compared to ANS feels like there are less absolutely awful builds that can tank a game. While I'm sure there are Noob traps, not too many things about OSP perform aggresively badly. (other than maybe containers, but I've heard mixed messages)
 
-* Single ship missile fleets seem underwelming? these fleet generally seem to consistently lose more than they win. I don't know why this might be the case, but it seemed to be a common theme across Vauxhalls and Axfords. 
-
-* The 3000 point Solomon seems like an objectively bad build that will lose aboout 65% of the time. 
 
 ## Whats next
 
-I'm going to do OSP next, but It might be a touch longer. I've also got a rudimentry neural network to predict the outcome of a battle based on the hulls on either side. The only thing is, I need about 10x more battle reports that I currently have to feel confident in it. More would be appreciated! 
+I'm looking at getting some of the more specific parts from the battle report. I've had a few questions around weapons, but I want to look at things like PD and sensors. 
+
+I also want to look at things like hull synergy across a fleet, ie does an Axford pair well with another Axford, or is it better paired with a Raines. How I might do this in the case of more than one Raines, I'm not too sure yet. 
+
+Finally and off the back of these two things, I want to see if I can somehow cluster fleet compositions, and then look to see the win rates of these clusters. This will move towards looking into what types of fleet builds are more effective, which I suspect the community will appreciate.
+
 
 
 
