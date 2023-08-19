@@ -80,9 +80,7 @@ Other than the 3k missile liner builds, which while ok, win slightly less games 
 
 Container liners are an interesting one, in that they kinda have to be 3k, else you suffer from a lack of missiles, or bad missiles. There is a little spike at 2800, which I assume is from having an escort/PD boat.
 
-I've never really played containers in MP so I don't have too many thoughts, but I think that this hull **needs** to be played as a team, and aside from horrific missile builds, there doesn't seem to be any bad builds based off of points alone. 
-
-Thats not to say that your build is good. 
+I've never really played containers in MP so I don't have too many thoughts, but I think that this hull **needs** to be played as a team, and aside from horrific missile builds, there doesn't seem to be any bad builds based off of points alone, though thats not to say that your build is good.
 
 ## Conclusions
 
@@ -95,6 +93,7 @@ However, on this, I think I do have some takeaways:
 * You can definately overbuild your fleets, but OSP needs to use shuttles. They are cheap and contribute greatly to the win rate. Unless you have a specific build and synergy with another player, I can't think why you wouldn't have at least 1 shuttle in your fleet. 
 
 * Liners are strong! Tugs are strong! OSP compared to ANS feels like there are less absolutely awful builds that can tank a game. While I'm sure there are Noob traps, not too many things about OSP perform aggresively badly. (other than maybe containers, but I've heard mixed messages)
+
 
 
 ## Whats next
