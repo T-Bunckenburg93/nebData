@@ -1,0 +1,16 @@
+Class,Type,Point Cost,Base Crew Complement,Mass,Max Speed,Max Turn Speed,Armor Thickness,Structural Integrity,Hull Modifiers
+Stock/Shuttle,Clipper,50,55,1580 Tonnes,35 m/s,5.73 deg/s,5 cm,1000,Flank Damage Probability: -20%
+Stock/Sprinter Corvette,Corvette,100,40,3080 Tonnes,35 m/s,5.73 deg/s,8 cm,1000,Flank Damage Probability: -20%
+Stock/Tugboat,Clipper,75,40,3595 Tonnes,30 m/s,5.73 deg/s,5 cm,1000,Recycle Time: -20%
+Stock/Raines Frigate,Frigate,125,50,5095 Tonnes,22 m/s,4.58 deg/s,15 cm,3000,"Flank Damage Probability: -15%
+ Missile Programming Channels: +1"
+Stock/Bulk Feeder,Monitor,175,40,5095 Tonnes,20 m/s,5.73 deg/s,40 cm,1000,None
+Stock/Keystone Destroyer,Destroyer,200,50,8095 Tonnes,20 m/s,4.58 deg/s,22 cm,4000,"Overheat Damage Chance (Beam): -75%
+ Powerplant Efficiency: +25%
+ Missile Programming Channels: +1"
+Stock/Vauxhall Light Cruiser,Light Cruiser,350,75,10140 Tonnes,26 m/s,4.58 deg/s,30 cm,5500,Missile Programming Channels: +2
+Stock/Ocello Cruiser,Command Cruiser,575,80,12140 Tonnes,20 m/s,5.73 deg/s,30 cm,6500,Missile Programming Channels: +2
+Stock/Axford Heavy Cruiser,Heavy Cruiser,600,90,13140 Tonnes,18 m/s,4.58 deg/s,40 cm,6500,Missile Programming Channels: +2
+Stock/Container Hauler,Line Ship,1000,100,15095 Tonnes,20 m/s,4.01 deg/s,20 cm,3000,Missile Programming Channels: +3
+Stock/Bulk Hauler,Line Ship,350,100,15095 Tonnes,23 m/s,5.73 deg/s,20 cm,3000,Team Move Speed: +20%
+Stock/Solomon Battleship,Battleship,1000,150,21220 Tonnes,16 m/s,4.58 deg/s,52 cm,8000,None
