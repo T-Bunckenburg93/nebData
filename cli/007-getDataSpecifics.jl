@@ -220,7 +220,7 @@ function ShipBattleReport(ShipBattleReportNode)::DataFrame
     # MissilesDf = flattenSubReport(SubReport(Missiles),:MissileKey,[:MissileName,:MissileDesc])
     # EWWeaponsDf = flattenSubReport(SubReport(EWWeapons),:WeaponKey,[:GroupName,:Name])
 
-    WeaponsDf = pullOutSubReport(Weapons,:WeaponKey,[:TotalDamageDone,:TargetsAssigned,:TargetsDestroyed,:RoundsCarried,:ShotsFired,:HitCount])
+    WeaponsDf = pullOutSubReport(Weapons,:GroupName,[:TotalDamageDone,:TargetsAssigned,:TargetsDestroyed,:RoundsCarried,:ShotsFired,:HitCount])
     MissilesDf = pullOutSubReport(Missiles,:MissileKey,[:TotalCarried,:TotalExpended,:TotalDamageDone,:Hits,:Misses,:Softkills,:Hardkills])
     EWWeaponsDf = pullOutSubReport(EWWeapons,:Name,[:TargetsAssigned,:ShotDuration])
     
@@ -416,7 +416,7 @@ names(allGamesDf)
 
 # disallowmissing!(allGamesDf)
 
-filter(x->x.Multiplayer == "true",allGamesDf)
+filter!(x->x.Multiplayer == "true",allGamesDf)
 factions = ["ANS" "OSP"]
 a = "OSP"
 filter(x->x != a,factions)[1]
@@ -505,7 +505,7 @@ jldsave("BattleReports/allGameDataComponents.jld2";df = allGamesDf)
 
 allGamesDf = load_object("BattleReports/allGameDataComponents.jld2")
 
-
+names(allGamesDf)
 
 #scratch
 

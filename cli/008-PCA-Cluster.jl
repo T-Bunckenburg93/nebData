@@ -7,15 +7,18 @@ allGamesDf = load_object("BattleReports/allGameDataComponents.jld2")
 leftjoin!(allGamesDf,HullInfo, on = :HullKey => :Class)
 
 
-replace!(allGamesDf[!,"Stock/Mk610 Beam Turret::RoundsCarried"],nothing=>1000.0)
+AATest = names(allGamesDf)
 
-replace!(allGamesDf[!,"Stock/Mk600 Beam Cannon::RoundsCarried"],nothing=>1000.0)
+replace!(allGamesDf[!,"Beam Turret::RoundsCarried"],nothing=>1000.0)
 
-
-t = allGamesDf[!,"Stock/Mk610 Beam Turret::RoundsCarried"]
-t = allGamesDf[!,"Stock/Mk600 Beam Cannon::RoundsCarried"]
+replace!(allGamesDf[!,"Mk600 Beam Cannon::RoundsCarried"],nothing=>1000.0)
 
 
+t = allGamesDf[!,"Beam Turret::RoundsCarried"]
+t = allGamesDf[!,"Mk600 Beam Cannon::RoundsCarried"]
+
+filter!(x->x.OriginalPointCost != "0" ,allGamesDf)
+# allGamesDf.OriginalPointCost
 
 # game Player ship are probably the keys 
 
@@ -115,7 +118,6 @@ indz = findall(x-> x == 0.1,table2Cluster[!,colNum])
 # AAtest = filter(x->x.PlayerName == "Ruthless Aids",  allGamesDf[indz,:])
 AAtest = allGamesDf[indz,:]
 
-(allGamesDf.PlayerName)
 
 table2Cluster = hcat(table2Cluster,hullDf)
 table2Cluster.OriginalPointCost = parse.(Float64,allGamesDf.OriginalPointCost)
@@ -124,7 +126,7 @@ table2Cluster.OriginalPointCost = parse.(Float64,allGamesDf.OriginalPointCost)
 
 # filter!(x->x.OriginalPointCost <= 3000,table2Cluster)
 
-maximum(pointCost)
+# maximum(pointCost)
 disallowmissing!(table2Cluster)
 # hullAtrribs = Matrix(table2Cluster)
 @show describe(table2Cluster);
@@ -140,12 +142,12 @@ hullAtrribs  = StatsBase.transform(dt, Matrix(table2Cluster))
 
 
 # R = Distances.pairwise(Euclidean(), hullAtrribs,2)
-# r = pairwise(Euclidean() , hullAtrribs', dims = 2 )
+r = pairwise(Euclidean() , hullAtrribs', dims = 2 )
 # replace(Matrix(table2Cluster), NaN=>0.0)
 # M = fit(PCA,hullAtrribs';)
 
-# mean(r)
-# std(r)
+mean(r)
+std(r)
 
 sz = size(hullAtrribs,2)
 
@@ -154,15 +156,16 @@ sz = size(hullAtrribs,2)
 # minimum(norm.(eachrow(hullAtrribs)))
 # std(norm.(eachrow(hullAtrribs)))
 
-clustering = dbscan(rotl90(hullAtrribs), 0.2, min_neighbors = 2, min_cluster_size =2*sz)
+clustering = dbscan(rotl90(hullAtrribs), 0.05, min_neighbors = 2, min_cluster_size =2*sz)
 clustering.clusters
 
 filter(x->x==0,clustering.assignments)
 
 clustering.assignments
+
 clustering.counts
 
-c1 = clustering.clusters[3]
+c1 = clustering.clusters[2]
 
 function EachCluster(c1)
 
@@ -184,18 +187,41 @@ function EachCluster(c1)
     missCols
     incCols
 
-    elements = first.(split.(filter(x-> x ∈ vcat(WeaponVals,eWar), names(look)[incCols]),"::"))
+    incColNames = filter(x-> x ∈ vcat(WeaponVals,eWar), names(look)[incCols])
+    elements = first.(split.(incColNames,"::"))
+
+    elementProp = []
+    for i in incColNames
+
+        push!(
+            elementProp,
+            sum(skipmissing(look[!,i]))/sum(skipmissing(allGamesDf[!,i])) 
+            # / (size(collect(skipmissing(look[!,i])),1)/size(collect(skipmissing(allGamesDf[!,i])),1))
+        )
+
+    end
+    elementProp
+    all = sort(DataFrame(element = elements, prop = elementProp),:prop,rev = true)
+
+    hullAtrribs[:,]
+
     Hulls = countmap(allGamesDf[inds,:].HullKey)
         totalPtCost = parse.(Float64,look[!,"OriginalPointCost"])
     meanCost = mean(totalPtCost)
+    minCost = minimum(totalPtCost)
+    maxCost = maximum(totalPtCost)
     stdDevCost = std(totalPtCost)
     clusterSz = size(totalPtCost,1)
 
-    return (Hulls,elements,meanCost,stdDevCost,clusterSz)
+    return (Hulls,all,minCost,meanCost,maxCost,stdDevCost,clusterSz)
 end
 
+# allGamesDf[!,z]
+# sum(skipmissing(allGamesDf[!,z]))
+# z = incColNames[1]
 
 
+size(collect(skipmissing(allGamesDf[!,z])),1)
 clustering.clusters
 cl = []
 
@@ -204,5 +230,4 @@ for i in clustering.clusters
         push!(cl,EachCluster(i))
 end
 
-cl[1]
-
+cl[end]
