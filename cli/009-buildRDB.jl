@@ -1,6 +1,5 @@
 using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, Flux, CUDA, OneHotArrays, StatsBase, ProgressMeter, Plots, GLM, JLD2 
-savePath = "C:/Program Files (x86)/Steam/steamapps/common/Nebulous/Saves/SkirmishReports"
-saves = readdir(savePath)
+
 
 # so the goal of this, is to turn a neb battle report into a single row that could be fed into a NN.
 # Initally I think a row for each ship. 
@@ -16,7 +15,7 @@ This function seaches the child elements of node, and returns the first one spec
 
 If there is no match, then the child elements are printed
 """
-function findElement(node::Node,elementName::String)
+function findElement(node::Node,elementName::String,debug=true)
 
     childrenNodeNames = tag.(children(node))
 
@@ -26,7 +25,7 @@ function findElement(node::Node,elementName::String)
     
         return children(node)[nodeWeWant]
     
-    else 
+    elseif debug == true
         println("Node: ",elementName, " doesn't exist")
         println("Printing all nodes: ")
         println.("   ",childrenNodeNames)
@@ -34,7 +33,7 @@ function findElement(node::Node,elementName::String)
     end
 end
 function findElement(node::Node)
-    findElement(node,"")
+    findElement(node,"",true)
 end
 # findElement(doc,"FullAfterActionReport")
 
@@ -71,8 +70,6 @@ function getNth(x,n)
 end
 
 
-
-
 # OK, so I want a function that takes in a battle report, and creates a bunch of tables, that can then be linked.
 # This is so I can then use SQL to take all the tables that I currently have.
 
@@ -83,34 +80,40 @@ Takes a FullAfterActionReport node, and returns a single row DF
 """
 function matchInfo(FullAfterActionReport::Node)
 
-    GameFinished = getElementValue(FullAfterActionReport,"GameFinished")
-    GameStartTimestamp = getElementValue(FullAfterActionReport,"GameStartTimestamp")
-    WinningTeam = getElementValue(FullAfterActionReport,"WinningTeam")
-    LocalPlayerWon = getElementValue(FullAfterActionReport,"LocalPlayerWon")
-    LocalPlayerSpectator = getElementValue(FullAfterActionReport,"LocalPlayerSpectator")
-    LocalPlayerTeam = getElementValue(FullAfterActionReport,"LocalPlayerTeam")
-    Multiplayer = getElementValue(FullAfterActionReport,"Multiplayer")
-    LobbyId = getElementValue(findElement(FullAfterActionReport,"LobbyId"),"Value")
+    try
 
-    Time = DateTime(getElementValue(FullAfterActionReport,"Time")[1:end-4],Dates.ISODateTimeFormat)
+        GameFinished = getElementValue(FullAfterActionReport,"GameFinished")
+        GameStartTimestamp = getElementValue(FullAfterActionReport,"GameStartTimestamp")
+        WinningTeam = getElementValue(FullAfterActionReport,"WinningTeam")
+        LocalPlayerWon = getElementValue(FullAfterActionReport,"LocalPlayerWon")
+        LocalPlayerSpectator = getElementValue(FullAfterActionReport,"LocalPlayerSpectator")
+        LocalPlayerTeam = getElementValue(FullAfterActionReport,"LocalPlayerTeam")
+        Multiplayer = getElementValue(FullAfterActionReport,"Multiplayer")
+        LobbyId = getElementValue(findElement(FullAfterActionReport,"LobbyId"),"Value")
 
-    # create a hash so that (hopefully) games saved from 2 different players, gets picked up
-    GameKey = hash(string(Multiplayer,Time,LobbyId,WinningTeam,GameStartTimestamp,GameFinished))
+        Time = DateTime(getElementValue(FullAfterActionReport,"Time")[1:end-4],Dates.ISODateTimeFormat)
 
-    dfOut = DataFrame(
-        GameKey = GameKey,
-        Multiplayer=Multiplayer,
-        Time=Time,
-        LobbyId=LobbyId,
-        WinningTeam=WinningTeam,
-        GameStartTimestamp=GameStartTimestamp,
-        GameFinished = GameFinished,
-        LocalPlayerWon = LocalPlayerWon,
-        LocalPlayerSpectator = LocalPlayerSpectator,
-        LocalPlayerTeam = LocalPlayerTeam,
-    )
+        # create a hash so that (hopefully) games saved from 2 different players, gets picked up
+        GameKey = hash(string(Multiplayer,Time,LobbyId,WinningTeam,GameStartTimestamp,GameFinished))
 
-    return GameKey, dfOut
+        dfOut = DataFrame(
+            GameKey = GameKey,
+            Multiplayer=Multiplayer,
+            Time=Time,
+            LobbyId=LobbyId,
+            WinningTeam=WinningTeam,
+            GameStartTimestamp=GameStartTimestamp,
+            GameFinished = GameFinished,
+            LocalPlayerWon = LocalPlayerWon,
+            LocalPlayerSpectator = LocalPlayerSpectator,
+            LocalPlayerTeam = LocalPlayerTeam,
+        )
+
+        return GameKey, dfOut
+
+    catch e
+        println(_filename)
+    end
 
 end
 
@@ -118,50 +121,471 @@ end
 """
 """
 function teamInfo(Node,gameKey=hash(""))
+    try 
+        teamdf = DataFrame()
 
-    teamdf = DataFrame()
+        for t in children(Node)
 
-    for t in children(Teams)
+            TeamID = getElementValue(t,"TeamID")
 
-        TeamID = getElementValue(t,"TeamID")
+            Players = findElement(t,"Players")
+            # get the player info
+            for p in children(Players)
+
+                AccountId = getElementValue(findElement(p,"AccountId"),"Value")
+                PlayerID = getElementValue(p,"PlayerID")
+                PlayerName = getElementValue(p,"PlayerName")
+                Colors = findElement(p,"Colors")
+                FleetPrefix = getElementValue(Colors,"FleetPrefix")
+
+                
+
+                all = DataFrame(
+                    gameKey=gameKey,
+                    AccountId=AccountId,
+                    TeamID=TeamID,
+                    PlayerName=PlayerName,
+                    PlayerID=PlayerID,
+                    FleetPrefix=FleetPrefix            
+                    )
+
+                append!(teamdf,all)
+            end
+
+        end
+
+        return teamdf
+    catch e
+        println("Error Parsing TeamInfo")
+    end
+end
+# Teams = findElement(FullAfterActionReport,"Teams")
+# teamInfo(Teams)
+
+"""
+Takes a Engineering Node and returns a DataFrame
+"""
+function EngineeringReport(Engineering)
+    eDF = DataFrame(
+        Efficiency = getElementValue(Engineering,"Efficiency"),
+        Rating = getElementValue(Engineering,"Rating"),
+        OptimumPower = getElementValue(Engineering,"OptimumPower"),
+        AveragePower = getElementValue(Engineering,"AveragePower"),
+        PeakPowerDemand = getElementValue(Engineering,"PeakPowerDemand"),
+        TotalGameTime = getElementValue(Engineering,"TotalGameTime"),
+        ImmobilizedDuration = getElementValue(Engineering,"ImmobilizedDuration"),
+        AverageThrusterCond = getElementValue(Engineering,"AverageThrusterCond"),
+        DamageRepaired = getElementValue(Engineering,"DamageRepaired"),
+        RestoresTotal = getElementValue(Engineering,"RestoresTotal"),
+        RestoresConsumed = getElementValue(Engineering,"RestoresConsumed"),
+        RestoresDestroyed = getElementValue(Engineering,"RestoresDestroyed"),
+        RestoresRemaining = getElementValue(Engineering,"RestoresRemaining"),
+        CriticalComponentCount = getElementValue(Engineering,"CriticalComponentCount"),
+        CriticalComponentsLeftDestroyed = getElementValue(Engineering,"CriticalComponentsLeftDestroyed"),
+        DCTeamsCarried = getElementValue(Engineering,"DCTeamsCarried"),
+        DCTeamsSurvived = getElementValue(Engineering,"DCTeamsSurvived"),
+        DCTeamsHeavyCasualties = getElementValue(Engineering,"DCTeamsHeavyCasualties"),
+    )
+    return eDF
+end
+
+"""
+Takes a Defenses Node and returns 2 DataFrames
+"""
+function DefencesReport(Defenses)
+    pdDF = DataFrame()
+    ammDF = DataFrame()
+    decoyDF = DataFrame() 
+    # DefensesAll = DataFrame() 
+
+    if !isnothing(Defenses)
+
+        # DefensesAll = DataFrame(
+        #     GameStartTime = getElementValue(Defenses,"GameStartTime"),
+        #     TimeOfFirstTrack = getElementValue(Defenses,"TimeOfFirstTrack")
+        # )
+
+        WeaponReports = findElement(Defenses,"WeaponReports")
+        MissileReports = findElement(Defenses,"MissileReports")
+        DecoyReports = findElement(Defenses,"DecoyReports")
+
+        for DefensiveWeaponReport in children(WeaponReports)
+            WeaponCount = getElementValue(DefensiveWeaponReport,"WeaponCount")
+            Weapon = findElement(DefensiveWeaponReport,"Weapon")
+
+            df = DataFrame(
+                Name = getElementValue(Weapon,"Name"),
+                GroupName = getElementValue(Weapon,"GroupName"),
+                WeaponKey = getElementValue(Weapon,"WeaponKey"),
+                MaxDamagePerShot = getElementValue(Weapon,"MaxDamagePerShot"),
+                TotalDamageDone = getElementValue(Weapon,"TotalDamageDone"),
+                TargetsAssigned = getElementValue(Weapon,"TargetsAssigned"),
+                TargetsDestroyed = getElementValue(Weapon,"TargetsDestroyed"),
+                RoundsCarried = getElementValue(Weapon,"RoundsCarried"),
+                ShotsFired = getElementValue(Weapon,"ShotsFired"),
+                # ShotsFiredOverTimeLimit = getElementValue(Weapon,"ShotsFiredOverTimeLimit"),
+                HitCount = getElementValue(Weapon,"HitCount"),
+                # ShotDuration = getElementValue(Weapon,"ShotDuration"),
+                # CanBattleshort = getElementValue(Weapon,"CanBattleshort"),
+            )
+            df.WeaponCount .= WeaponCount
+            append!(pdDF,df)
+        end
+
+        for DefensiveMissileReport in children(MissileReports)
+            # WeaponCount = getElementValue(DefensiveWeaponReport,"WeaponCount")
+            # Weapon = findElement(DefensiveWeaponReport,"Weapon")
+
+            df = DataFrame(
+                MissileName = getElementValue(DefensiveMissileReport,"MissileName"),
+                MissileDesc = getElementValue(DefensiveMissileReport,"MissileDesc"),
+                MissileKey = getElementValue(DefensiveMissileReport,"MissileKey"),
+                TotalCarried = getElementValue(DefensiveMissileReport,"TotalCarried"),
+                TotalTargets = getElementValue(DefensiveMissileReport,"TotalTargets"),
+                TotalExpended = getElementValue(DefensiveMissileReport,"TotalExpended"),
+                TotalInterceptions = getElementValue(DefensiveMissileReport,"TotalInterceptions"),
+                TotalSuccesses = getElementValue(DefensiveMissileReport,"TotalSuccesses"),
+            )
+            # df.WeaponCount .= WeaponCount
+            append!(ammDF,df)
+        end
+
+        for DecoyReport in children(DecoyReports)
+            # WeaponCount = getElementValue(DefensiveWeaponReport,"WeaponCount")
+            # Weapon = findElement(DefensiveWeaponReport,"Weapon")
+
+            df = DataFrame(
+                MissileName = getElementValue(DecoyReport,"MissileName"),
+                MissileDesc = getElementValue(DecoyReport,"MissileDesc"),
+                MissileKey = getElementValue(DecoyReport,"MissileKey"),
+                TotalCarried = getElementValue(DecoyReport,"TotalCarried"),
+                TotalExpended = getElementValue(DecoyReport,"TotalExpended"),
+                TotalSeductions = getElementValue(DecoyReport,"TotalSeductions"),
+            )
+            # df.WeaponCount .= WeaponCount
+            append!(decoyDF,df)
+        end
+    end
+    return pdDF, ammDF, decoyDF
+
+end
+
+"""
+Takes a Sensors Node and returns 2 DataFrames
+"""
+function SensorsReport(Sensors)
+    sDF = DataFrame()
+
+    SensorsAll = DataFrame(
+        GameStartTime = getElementValue(Sensors,"GameStartTime"),
+        TimeOfFirstTrack = getElementValue(Sensors,"TimeOfFirstTrack"),
+        PeakTracksHeld = getElementValue(Sensors,"PeakTracksHeld"),
+        TotalTimeJammed = getElementValue(Sensors,"TotalTimeJammed"),
+        TracksLostToJamming = getElementValue(Sensors,"TracksLostToJamming"),
+        TotalTimeTrackingEnemy = getElementValue(Sensors,"TotalTimeTrackingEnemy"),
+        TotalTimeTrackedByEnemy = getElementValue(Sensors,"TotalTimeTrackedByEnemy"),
+        TotalStealthTrackingTime = getElementValue(Sensors,"TotalStealthTrackingTime"),
+        StealthEfficiency = getElementValue(Sensors,"StealthEfficiency"),
+        TimeAtSensorEMCON = getElementValue(Sensors,"TimeAtSensorEMCON"),
+        TimeAtTotalEMCON = getElementValue(Sensors,"TimeAtTotalEMCON"),
+    )
+
+    EWWeapons = findElement(Sensors,"EWWeapons")
+
+    for i in children(EWWeapons)
+
+        df = DataFrame(
+            Name = getElementValue(i,"Name"),
+            GroupName = getElementValue(i,"GroupName"),
+            WeaponKey = getElementValue(i,"WeaponKey"),
+            MaxDamagePerShot = getElementValue(i,"MaxDamagePerShot"),
+            TotalDamageDone = getElementValue(i,"TotalDamageDone"),
+            TargetsAssigned = getElementValue(i,"TargetsAssigned"),
+            TargetsDestroyed = getElementValue(i,"TargetsDestroyed"),
+            RoundsCarried = getElementValue(i,"RoundsCarried"),
+            ShotsFired = getElementValue(i,"ShotsFired"),
+            # ShotsFiredOverTimeLimit = getElementValue(i,"ShotsFiredOverTimeLimit"),
+            HitCount = getElementValue(i,"HitCount"),
+            # ShotDuration = getElementValue(i,"ShotDuration"),
+            # CanBattleshort = getElementValue(i,"CanBattleshort"),
+
+        )
+
+        append!(sDF,df)
+    end
+    return sDF,SensorsAll
+
+end
+
+"""
+Takes a AntiShipReport Node and returns a DataFrame
+"""
+function StrikeReport(Strike)
+    sDF = DataFrame()
+
+    missiles = findElement(Strike,"Missiles")
+    Efficiency = getElementValue(Strike,"Efficiency")
+    Rating = getElementValue(Strike,"Rating")
+    for i in children(missiles)
+
+        df = DataFrame(
+            MissileName = getElementValue(i,"MissileName"),
+            MissileDesc = getElementValue(i,"MissileDesc"),
+            MissileKey = getElementValue(i,"MissileKey"),
+            TotalCarried = getElementValue(i,"TotalCarried"),
+            TotalExpended = getElementValue(i,"TotalExpended"),
+            IndividualDamagePotential = getElementValue(i,"IndividualDamagePotential"),
+            TotalDamageDone = getElementValue(i,"TotalDamageDone"),
+            Hits = getElementValue(i,"Hits"),
+            Misses = getElementValue(i,"Misses"),
+            Softkills = getElementValue(i,"Softkills"),
+            Hardkills = getElementValue(i,"Hardkills"),
+            # Efficiency=Efficiency,
+            # Rating=Rating,
+
+        )
+
+        append!(sDF,df)
+    end
+    return sDF
+
+end
+
+"""
+Takes a AntiShipReport Node and returns a DataFrame
+"""
+function AntiShipReport(AntiShip)
+    asDF = DataFrame()
+
+    weapons = findElement(AntiShip,"Weapons")
+    Efficiency = getElementValue(AntiShip,"Efficiency")
+    Rating = getElementValue(AntiShip,"Rating")
+    for i in children(weapons)
+
+        df = DataFrame(
+            Name = getElementValue(i,"Name"),
+            GroupName = getElementValue(i,"GroupName"),
+            WeaponKey = getElementValue(i,"WeaponKey"),
+            MaxDamagePerShot = getElementValue(i,"MaxDamagePerShot"),
+            TotalDamageDone = getElementValue(i,"TotalDamageDone"),
+            TargetsAssigned = getElementValue(i,"TargetsAssigned"),
+            TargetsDestroyed = getElementValue(i,"TargetsDestroyed"),
+            RoundsCarried = getElementValue(i,"RoundsCarried"),
+            ShotsFired = getElementValue(i,"ShotsFired"),
+            HitCount = getElementValue(i,"HitCount"),
+            # Efficiency=Efficiency,
+            # Rating=Rating,
+
+        )
+
+        append!(asDF,df)
+    end
+    return asDF
+
+end
+
+"""
+Takes a PartStatus Node and returns a DataFrame
+"""
+function PartStatusReport(PartStatus)
+    psDF = DataFrame(
+        Key = String[],
+        HealthPercent = Float64[],
+        IsDestroyed = String[]
+    )
+    for i in children(PartStatus)
+
+        Key = getElementValue(i,"Key")
+        HealthPercent = parse(Float64,getElementValue(i,"HealthPercent"))
+        IsDestroyed = getElementValue(i,"IsDestroyed")
+
+        push!(psDF,(Key,HealthPercent,IsDestroyed))
+    end
+    return psDF
+
+end
+
+"""
+Takes a EngagementHistory Node and returns a DataFrame
+"""
+function EngagementHistoryReport(EngagementHistory)
+    psDF = DataFrame(
+        Name = String[],
+        TN = Int64[],
+        EndingStatus = String[]
+    )
+    for EnemyEngagement in children(EngagementHistory)
+
+        Name = getElementValue(EnemyEngagement,"Name")
+        TN = parse(Int64,collect(values(XML.attributes(findElement(EnemyEngagement,"TN"))))[1])
+        EndingStatus = getElementValue(EnemyEngagement,"EndingStatus")
+        
+
+        push!(psDF,(Name,TN,EndingStatus))
+    end
+    return psDF
+
+end
+
+
+# ok so now we want the ship info
+function shipInfo(Node,gameKey=hash(""))
+
+    shipdf = DataFrame()
+    partStatusDf = DataFrame()
+    EngagementHistDF = DataFrame()
+    AntiShipDF = DataFrame()
+    StrikeDF = DataFrame()
+    SensorsDF = DataFrame()
+    SensorsHighLevelDF = DataFrame()
+    DefensesAll = DataFrame()
+    PointDefenceDF = DataFrame()
+    AmmDF = DataFrame()
+    DecoyDF = DataFrame()
+    EngineeringDF = DataFrame()
+
+    for t in children(Node)
 
         Players = findElement(t,"Players")
         # get the player info
         for p in children(Players)
 
             AccountId = getElementValue(findElement(p,"AccountId"),"Value")
-            PlayerID = getElementValue(p,"PlayerID")
-            PlayerName = getElementValue(p,"PlayerName")
-            Colors = findElement(p,"Colors")
-            FleetPrefix = getElementValue(Colors,"FleetPrefix")
+            Ships = findElement(p,"Ships")
 
-            
+                for s in children(Ships)
 
-            all = DataFrame(
-                gameKey=gameKey,
-                AccountId=AccountId,
-                TeamID=TeamID,
-                PlayerName=PlayerName,
-                PlayerID=PlayerID,
-                FleetPrefix=FleetPrefix            
-                )
+                    ShipName = getElementValue(s,"ShipName")
+                    HullString = getElementValue(s,"HullString")
+                    HullKey = getElementValue(s,"HullKey")
+                    Eliminated = getElementValue(s,"Eliminated")
+                    EliminatedTimestamp = getElementValue(s,"EliminatedTimestamp")
+                    WasDefanged = getElementValue(s,"WasDefanged")
+                    DefangedTimestamp = getElementValue(s,"DefangedTimestamp")
+                    OriginalCrew = getElementValue(s,"OriginalCrew")
+                    FinalCrew = getElementValue(s,"FinalCrew")
+                    TotalDamageReceived = getElementValue(s,"TotalDamageReceived")
+                    TotalDamageRepaired = getElementValue(s,"TotalDamageRepaired")
+                    TotalDamageDealt = getElementValue(s,"TotalDamageDealt")
+                    Condition = getElementValue(s,"Condition")
+                    TotalTimeInContact = getElementValue(s,"TotalTimeInContact")
+                    OriginalPointCost = getElementValue(s,"OriginalPointCost")
+                    TotalDistanceTravelled = getElementValue(s,"TotalDistanceTravelled")
+                    AmmoPercentageExpended = getElementValue(s,"AmmoPercentageExpended")
 
-            append!(teamdf,all)
+                    shipKey = hash(string(
+                        gameKey,
+                        AccountId,
+                        ShipName,
+                        HullString,
+                        HullKey,
+                        Eliminated,
+                        EliminatedTimestamp,
+                        WasDefanged,
+                        DefangedTimestamp,
+                        OriginalCrew,
+                        FinalCrew,
+                        TotalDamageReceived,
+                        TotalDamageRepaired,
+                        TotalDamageDealt,
+                        Condition,
+                        TotalTimeInContact,
+                        OriginalPointCost,
+                        TotalDistanceTravelled,
+                        AmmoPercentageExpended,
+                    ))
+
+                    all = DataFrame(
+                        gameKey=gameKey,
+                        AccountId=AccountId,
+                        shipKey=shipKey,
+                        ShipName=ShipName,
+                        HullString=HullString,
+                        HullKey=HullKey,
+                        Eliminated=Eliminated,
+                        EliminatedTimestamp=EliminatedTimestamp,
+                        WasDefanged=WasDefanged,
+                        DefangedTimestamp=DefangedTimestamp,
+                        OriginalCrew=OriginalCrew,
+                        FinalCrew=FinalCrew,
+                        TotalDamageReceived=TotalDamageReceived,
+                        TotalDamageRepaired=TotalDamageRepaired,
+                        TotalDamageDealt=TotalDamageDealt,
+                        Condition=Condition,
+                        TotalTimeInContact=TotalTimeInContact,
+                        OriginalPointCost=OriginalPointCost,
+                        TotalDistanceTravelled=TotalDistanceTravelled,
+                        AmmoPercentageExpended=AmmoPercentageExpended,
+                    )
+
+                append!(shipdf,all)
+
+                    # ok so now we do the the other components.
+
+                    PartStatus = findElement(s,"PartStatus")
+                        psr = PartStatusReport(PartStatus)
+
+                        insertcols!(psr,1,:shipKey => fill(shipKey,size(psr,1)))
+
+                        append!(partStatusDf,psr; cols = :union)
+
+                    EngagementHist = findElement(s,"EngagementHistory",false)
+                        ehr = EngagementHistoryReport(EngagementHist)
+
+                        insertcols!(ehr,1,:shipKey => fill(shipKey,size(ehr,1)))
+
+                        append!(EngagementHistDF,ehr; cols = :union)
+
+                    AntiShip = findElement(s,"AntiShip",false)
+                        asr = AntiShipReport(AntiShip)
+
+                        insertcols!(asr,1,:shipKey => fill(shipKey,size(asr,1)))
+
+                        append!(AntiShipDF,asr; cols = :union)
+
+                    Strike = findElement(s,"Strike")
+                        mr = StrikeReport(Strike)
+
+                        insertcols!(mr,1,:shipKey => fill(shipKey,size(mr,1)))
+
+                        append!(StrikeDF,mr; cols = :union)
+
+                    Sensors = findElement(s,"Sensors")
+                        sr = SensorsReport(Sensors)[1]
+                        shlr = SensorsReport(Sensors)[2]
+
+                        insertcols!(sr,1,:shipKey => fill(shipKey,size(sr,1)))
+                        insertcols!(shlr,1,:shipKey => fill(shipKey,size(shlr,1)))
+                        
+                        append!(SensorsDF,sr; cols = :union)
+                        append!(SensorsHighLevelDF,shlr; cols = :union)
+
+
+                    Defenses = findElement(s,"Defenses",false)
+                        D = DefencesReport(Defenses)
+
+                        insertcols!(D[1],1,:shipKey => fill(shipKey,size(D[1],1)))
+                        insertcols!(D[2],1,:shipKey => fill(shipKey,size(D[2],1)))
+                        insertcols!(D[3],1,:shipKey => fill(shipKey,size(D[3],1)))
+
+                        append!(PointDefenceDF,D[1]; cols = :union)
+                        append!(AmmDF,D[2]; cols = :union)
+                        append!(DecoyDF,D[3]; cols = :union)
+
+                    Engineering = findElement(s,"Engineering")
+                    eR = EngineeringReport(Engineering)
+                    insertcols!(eR,1,:shipKey => fill(shipKey,size(eR,1)))
+                    append!(EngineeringDF,eR)
+            end
         end
-
     end
-
-    teamdf
+    return shipdf, partStatusDf, EngagementHistDF, AntiShipDF, StrikeDF, SensorsDF, SensorsHighLevelDF,PointDefenceDF,AmmDF,DecoyDF,EngineeringDF
 
 end
-# Teams = findElement(FullAfterActionReport,"Teams")
-# teamInfo(Teams)
-
-
 
 function matchReport2(_filename)
     try 
-
+        # fn = @raw_str(_filename)
         if size(readlines(_filename),1) == 2
             # parse(Node, str)
             doc = parse(Node,readlines(_filename)[2])
@@ -182,11 +606,15 @@ function matchReport2(_filename)
         Teams = findElement(FullAfterActionReport,"Teams")
         ti = teamInfo(Teams,gameKey)
 
+        # and get the ship infomation
+        si = shipInfo(findElement(FullAfterActionReport,"Teams"))
  
-        return (mi[2],ti,)
+        return (mi[2],ti,si...)
 
     catch e
         println(_filename)
+        println("Error parsing file")
+
     end
 
     # FullAfterActionReport = findElement(doc,"FullAfterActionReport")
@@ -196,13 +624,14 @@ function matchReport2(_filename)
 end
 
 
-
-
 # ok so lets begin
 
 localPath = "BattleReports"
+savePath = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Nebulous\\Saves\\SkirmishReports"
+saves = readdir(savePath)
 
 savesLocal = joinpath.(savePath,readdir(savePath))
+# savesLocal = string.(savePath,"/",readdir(savePath))
 savesKillboard = joinpath.(localPath,readdir(localPath))
 
 allSaves = vcat(
@@ -213,25 +642,55 @@ allSaves = vcat(
 
 AllDataArray = []
 
-for i in savesKillboard
+for i in allSaves
     x = matchReport2(i)
     if !isnothing(x)
         push!(AllDataArray, x)
     end
 end
 
+# "C:\Program Files (x86)\Steam\steamapps\common\Nebulous\Saves\SkirmishReports\Skirmish Report - MP - 30-Jul-2023 09-48-43.xml"
 
-# AllDataArray
+matchReport2(savesLocal[2])
+
+""
+
+function getDf(a,n)
+    df = DataFrame()
+        dfs = getNth.(a,n)
+        for i in dfs
+            append!(df,i,cols = :union)
+        end
+    return df 
+end
+
+@raw_str("z")
+
+getDf(AllDataArray,7)
+
 # this creates the whole table from the single ones
-vcat(getNth.(AllDataArray,1)...)
-vcat(getNth.(AllDataArray,2)...)
+AllMatchReports = getDf(AllDataArray,1)
+AllTeamReports = vcat(getNth.(AllDataArray,2)...,cols = :union)
+AllShipReports = vcat(getNth.(AllDataArray,3)...,cols = :union)
+AllPartReports = vcat(getNth.(AllDataArray,4)...,cols = :union)
+AllEngagementReports = vcat(getNth.(AllDataArray,5)...,cols = :union)
+AllWeaponReports = vcat(getNth.(AllDataArray,6)...,cols = :union)
+AllMissileReports = vcat(getNth.(AllDataArray,7)...,cols = :union)
+AllEwarReports = vcat(getNth.(AllDataArray,8)...,cols = :union)
+AllSensorsReport = vcat(getNth.(AllDataArray,9)...,cols = :union)
+AllPdReports = vcat(getNth.(AllDataArray,10)...,cols = :union)
+AllAmmReports = vcat(getNth.(AllDataArray,11)...,cols = :union)
+AllDecoyReports = vcat(getNth.(AllDataArray,12)...,cols = :union)
+AllEngineeringReports = vcat(getNth.(AllDataArray,13)...,cols = :union)
+# vcat(getNth.(AllDataArray,14)...,cols = :union)
+
+allSaves
 
 
 
 
 
-
-filename = allSaves[2]
+filename = savesLocal[1]
 
 doc = parse(Node,readlines(filename)[2])
 doc = read(filename, Node)
@@ -241,619 +700,58 @@ findElement(FullAfterActionReport)
 # matchInfo(FullAfterActionReport)
 matchReport2(savesLocal[2])
 
+shups = findElement(findElement(findElement(FullAfterActionReport,"Teams")[1],"Players")[2],"Ships")[3]
+# findElement(shups)
 
+x = findElement(shups,"Engineering")
+w = findElement(x,"Efficiency")
+getElementValue(x,"Efficiency")
 
+findElement(findElement(w,"Efficiency"))
 
 
+# z = children(w)[1]
+(findElement(z,"Weapon"))
 
 
 
+def = findElement(w,"DefensiveWeaponReport")
+getElementValue(x,"Rating")
+getElementValue(x,"TotalMissilesThreateningShip")
+getElementValue(x,"TotalMissilesEngaged")
+getElementValue(x,"PeakTracksHeld")
+getElementValue(x,"TotalTimeJammed")
+getElementValue(x,"TracksLostToJamming")
 
 
+w1 = children(w)[1]
 
 
+EngineeringReport(findElement(shups,"Engineering"))
 
+AAA = DefencesReport(findElement(shups,"Defenses"))
+huh = findElement(shups,"Defenses")
+isnothing(huh)
 
 
-"""
-```
-function matchReport(filename)
-```
-Takes a this takes a neb XML battle report filepath and returns a DF about the match. 
-"""
-function matchReport(filename)
 
-    if size(readlines(filename),1) == 2
-        # parse(Node, str)
-        doc = parse(Node,readlines(filename)[2])
 
-    elseif size(readlines(filename),1) > 1
+EngagementHistoryReport(PartStatus)
 
-        doc = read(filename, Node)
 
-    end
 
-    FullAfterActionReport = findElement(doc,"FullAfterActionReport")
+getElementValue(shups,)
 
-    # Get the first cut of the after action report, Note may not need all of these, 
-    GameFinished = getElementValue(FullAfterActionReport,"GameFinished")
-    GameStartTimestamp = getElementValue(FullAfterActionReport,"GameStartTimestamp")
-    GameDuration = getElementValue(FullAfterActionReport,"GameDuration")
-    WinningTeam = getElementValue(FullAfterActionReport,"WinningTeam")
-    Multiplayer = getElementValue(FullAfterActionReport,"Multiplayer")
-    Time = getElementValue(FullAfterActionReport,"Time")
-    # Subsequent nodes:
-    LobbyId = findElement(FullAfterActionReport,"LobbyId")
-    Teams = findElement(FullAfterActionReport,"Teams")
 
-    # there are generally 2 teams:
+tmz = findElement(FullAfterActionReport,"Teams")
 
 
+DA = shipInfo(tmz);
+size(DA,1)
+AAA = DA[11]
 
-    ReportDF = DataFrame()
-    for i in children(Teams)
-        teamReport = getTeamReport(i)
-        append!(ReportDF,teamReport;  cols = :union)
-    end
 
-
-    ReportDF.GameStartTimestamp .= GameStartTimestamp
-    ReportDF.GameDuration .= GameDuration
-    ReportDF.WinningTeam .= WinningTeam
-    ReportDF.Multiplayer .= GameStartTimestamp
-    ReportDF.Multiplayer .= Multiplayer
-    ReportDF.Time .= Time
-
-    # and give the match a unique key
-    gameHash = hash(Matrix(ReportDF))
-
-    ReportDF.GameKey .= gameHash
-
-    return ReportDF
-
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-```
-SubReport(Weapons::Node)
-```
-
-takes an element that may have at least 1 
-children underneath  it. These children
-elements are turned into a dataframe, which is returned
-"""
-function SubReport(element)
-
-outDf = DataFrame()
-    # check if node is empty 
-    if children(element) != Node[]
-        for v in children(element)
-
-            vals = tag.(children(v))
-            sz = size(vals,1)
-
-            x= fill("",sz)
-            for i in 1:sz
-                j = getElementValue(v,vals[i])
-                if !isnothing(j)
-                    x[i] = j
-                end
-            end
-
-            append!(outDf, 
-                    permutedims(DataFrame(Name1 = string.(vals), Value1 = x),1)[!,2:end],
-                    cols= :union
-            )
-        end
-    end
-    return outDf
-end
-
-
-"""
-Takes a df from ideally the sub report and flattens it to a single row. 
-
-the name of the component is added to the col. 
-"""
-function flattenSubReport(dfIn::DataFrame,dfkey::Symbol,dfNot::Vector{Symbol})::DataFrame
-    # check null df
-    dfOut = DataFrame()
-    if dfIn != DataFrame()
-        # stack all the types and vars
-        dfLong = stack(select(dfIn,Not(dfNot)),names(dfIn,Not(vcat(dfkey,dfNot))))
-
-        replace!(dfLong.value, "" => "0")
-        replace!(dfLong.value, missing => "0")
-        
-        filter!(x->x.value ∉ [ "true" "false" ""],dfLong)
-        filter!(x->!ismissing(x.value) ,dfLong)
-
-
-        dfLong.value = parse.(Float64, dfLong.value)
-        # combine types and vars
-        dfLong[!,:variable] = string.(dfLong[!,dfkey],"::",dfLong[!,:variable])
-
-        # and unstack so we have type::var collums, with the value under
-        dfOut = unstack(select(dfLong,Not(dfkey)),:variable,:value)
-    end
-    return dfOut
-end
-function flattenSubReport(dfIn::DataFrame,dfkey::Symbol)::DataFrame
-    # check null df
-    dfOut = DataFrame()
-    if dfIn != DataFrame()
-        # stack all the types and vars
-        dfLong = stack(dfIn,names(dfIn,Not(dfkey)))
-
-        replace!(dfLong.value, "" => "0")
-        replace!(dfLong.value, missing => 0.0)
-        
-        filter!(x->x.value ∉ [ "true" "false" ""],dfLong)
-        filter!(x->!ismissing(x.value) ,dfLong)
-
-
-        # dfLong.value = parse.(Float64, dfLong.value)
-        # combine types and vars
-        dfLong[!,:variable] = string.(dfLong[!,dfkey],"::",dfLong[!,:variable])
-
-        # and unstack so we have type::var collums, with the value under
-        dfOut = unstack(select(dfLong,Not(dfkey)),:variable,:value)
-    end
-    return dfOut
-end
-
-
-# flattenSubReport(WeaponsDf,:GroupName,[:Name,:WeaponKey])
-# flattenSubReport(MissilesDf,:MissileKey,[:MissileName,:MissileDesc])
-# flattenSubReport(EWWeaponsDf,:WeaponKey,[:GroupName,:Name])
-
-
-function pullOutSubReport(node::Node,key,col2Keep)
-
-    nodeDf = SubReport(node)
-    if nodeDf != DataFrame()
-
-        for i in col2Keep
-
-            nodeDf[!,i] = tryparse.(Float64,nodeDf[!,i])
-
-        end
-
-        nodeDf
-
-        nodeDf2 = combine(groupby(nodeDf,key),col2Keep .=> sum .=>col2Keep)
-        return flattenSubReport(nodeDf2,key)
-    else return DataFrame()
-    end
-end
-
-"""
-```
-ShipBattleReport(ShipBattleReportNode::Node)
-```
-
-takes an element of name '<ShipBattleReport>' and returns a single line of a dataframe that contains all the information about the ship
-"""
-function ShipBattleReport(ShipBattleReportNode)::DataFrame
-
-    # findElement(ShipBattleReport1)
-
-    # these are all the single values that we can pull out at this level. 
-    # More complicated stuff comes later
-    ShipName = getElementValue(ShipBattleReportNode,"ShipName")
-    HullString = getElementValue(ShipBattleReportNode,"HullString")
-    HullKey = getElementValue(ShipBattleReportNode,"HullKey")
-    Eliminated = getElementValue(ShipBattleReportNode,"Eliminated")
-    EliminatedTimestamp = getElementValue(ShipBattleReportNode,"EliminatedTimestamp")
-    WasDefanged = getElementValue(ShipBattleReportNode,"WasDefanged")
-    DefangedTimestamp = getElementValue(ShipBattleReportNode,"DefangedTimestamp")
-    OriginalCrew = getElementValue(ShipBattleReportNode,"OriginalCrew")
-    FinalCrew = getElementValue(ShipBattleReportNode,"FinalCrew")
-    TotalDamageReceived = getElementValue(ShipBattleReportNode,"TotalDamageReceived")
-    TotalDamageRepaired = getElementValue(ShipBattleReportNode,"TotalDamageRepaired")
-    TotalDamageDealt = getElementValue(ShipBattleReportNode,"TotalDamageDealt")
-    TotalTimeInContact = getElementValue(ShipBattleReportNode,"TotalTimeInContact")
-    OriginalPointCost = getElementValue(ShipBattleReportNode,"OriginalPointCost")
-    TotalDistanceTravelled = getElementValue(ShipBattleReportNode,"TotalDistanceTravelled")
-    AmmoPercentageExpended = getElementValue(ShipBattleReportNode,"AmmoPercentageExpended")
-
-    AntiShip = findElement(ShipBattleReportNode,"AntiShip")
-    Strike = findElement(ShipBattleReportNode,"Strike")
-    Sensors = findElement(ShipBattleReportNode,"Sensors")
-    Defenses = findElement(ShipBattleReportNode,"Defenses")
-
-    Weapons = findElement(AntiShip,"Weapons")
-    Missiles = findElement(Strike,"Missiles")
-    EWWeapons = findElement(Sensors,"EWWeapons")
-
-    WeaponsDf = pullOutSubReport(Weapons,:GroupName,[:TotalDamageDone,:TargetsAssigned,:TargetsDestroyed,:RoundsCarried,:ShotsFired,:HitCount])
-    MissilesDf = pullOutSubReport(Missiles,:MissileKey,[:TotalCarried,:TotalExpended,:TotalDamageDone,:Hits,:Misses,:Softkills,:Hardkills])
-    EWWeaponsDf = pullOutSubReport(EWWeapons,:Name,[:TargetsAssigned,:ShotDuration])
-
-    # This is the PD. WIP
-    PDdf = DataFrame()
-    PointDefenceDF = DataFrame()
-    if !isnothing(Defenses)   
-        PointDefence = findElement(Defenses,"WeaponReports")
-
-        for i in 1:size(children(PointDefence),1)
-
-            # this code is gross but seems to work
-            Pdata = select(SubReport((PointDefence[i])),["Name","RoundsCarried"])
-            filter!(x -> any(!ismissing, x), Pdata)
-            Pdata.WeaponCount .= getElementValue(PointDefence[i],"WeaponCount")
-
-            # now we need to make this long
-            # we're effectively just looking at PD for this.
-            filter!(x-> !contains(x.Name,"HE-RPF"),Pdata)
-
-            append!(PDdf,Pdata, cols = :union)
-        end
-        PDdfLong = stack(PDdf,["RoundsCarried","WeaponCount"])
-        PDdfLong[!,:variable] = string.(PDdfLong[!,"Name"],"::",PDdfLong[!,:variable])
-        PointDefenceDF = unstack(select(PDdfLong,Not("Name")),:variable,:value)
-    end
-    
-    df = DataFrame(
-        ShipName = ShipName,
-        HullString = HullString,
-        HullKey = HullKey,
-        Eliminated = Eliminated,
-        EliminatedTimestamp = EliminatedTimestamp,
-        WasDefanged = WasDefanged,
-        DefangedTimestamp = DefangedTimestamp,
-        OriginalCrew = OriginalCrew,
-        FinalCrew = FinalCrew,
-        TotalDamageReceived = TotalDamageReceived,
-        TotalDamageRepaired = TotalDamageRepaired,
-        TotalDamageDealt = TotalDamageDealt,
-        TotalTimeInContact = TotalTimeInContact,
-        OriginalPointCost = OriginalPointCost,
-        TotalDistanceTravelled = TotalDistanceTravelled,
-        AmmoPercentageExpended = AmmoPercentageExpended,
-    )
-
-    dfOut =    hcat(df,
-                    WeaponsDf,
-                    MissilesDf,
-                    EWWeaponsDf,
-                    PointDefenceDF,
-                    )
-
-    return dfOut
-end
-
-
-# AAtest = matchReport(savesKillboard[3])
-
-
-"""
-```
-function getShips(ShipsNode)
-```
-Takes a ships node and returns a DF of the ships exist under it
-"""
-function getShips(ShipsNode)
-
-    shipDf = DataFrame()
-    for i in children(ShipsNode)
-    
-        ship = ShipBattleReport(i)
-        append!(shipDf,ship;  cols = :union)
-    end
-    return shipDf
-
-end
-
-"""
-```
-function getPlayerReport(ShipsNode)
-```
-Takes a <AARPlayerReportOfShipBattleReport> node and returns a DF of the player report
-"""
-function getPlayerReport(PlayerNode)
-
-    PlayerID = getElementValue(PlayerNode,"PlayerID")
-    PlayerName = getElementValue(PlayerNode,"PlayerName")
-
-    # for each player we want to get the ships
-    shipDf = getShips(findElement(PlayerNode,"Ships"))
-
-    shipDf.PlayerName .= PlayerName
-    shipDf.PlayerID .= PlayerID
-
-    return shipDf
-
-end
-
-"""
-```
-function getTeamReport(teamNode)
-```
-Takes a <TeamReportOfShipBattleReport> node and returns a DF of the team report
-"""
-function getTeamReport(teamNode)
-    TeamID = getElementValue(teamNode,"TeamID")
-    Players = findElement(teamNode,"Players")
-
-    teamDF = DataFrame()
-    for i in children(Players)
-        playerDF = getPlayerReport(i)
-        append!(teamDF,playerDF;  cols = :union)
-    end
-    teamDF.TeamID .= TeamID
-    return teamDF
-end
-
-
-
-
-"""
-```
-function matchReport(filename)
-```
-Takes a this takes a neb XML battle report filepath and  returns a DF
-"""
-function matchReport(filename)
-
-    if size(readlines(filename),1) == 2
-        # parse(Node, str)
-        doc = parse(Node,readlines(filename)[2])
-
-    elseif size(readlines(filename),1) > 1
-
-        doc = read(filename, Node)
-
-    end
-
-    FullAfterActionReport = findElement(doc,"FullAfterActionReport")
-
-    # Get the first cut of the after action report, Note may not need all of these, 
-    GameFinished = getElementValue(FullAfterActionReport,"GameFinished")
-    GameStartTimestamp = getElementValue(FullAfterActionReport,"GameStartTimestamp")
-    GameDuration = getElementValue(FullAfterActionReport,"GameDuration")
-    WinningTeam = getElementValue(FullAfterActionReport,"WinningTeam")
-    Multiplayer = getElementValue(FullAfterActionReport,"Multiplayer")
-    Time = getElementValue(FullAfterActionReport,"Time")
-    # Subsequent nodes:
-    LobbyId = findElement(FullAfterActionReport,"LobbyId")
-    Teams = findElement(FullAfterActionReport,"Teams")
-
-    # there are generally 2 teams:
-
-
-
-    ReportDF = DataFrame()
-    for i in children(Teams)
-        teamReport = getTeamReport(i)
-        append!(ReportDF,teamReport;  cols = :union)
-    end
-
-
-    ReportDF.GameStartTimestamp .= GameStartTimestamp
-    ReportDF.GameDuration .= GameDuration
-    ReportDF.WinningTeam .= WinningTeam
-    ReportDF.Multiplayer .= GameStartTimestamp
-    ReportDF.Multiplayer .= Multiplayer
-    ReportDF.Time .= Time
-
-    # and give the match a unique key
-    gameHash = hash(Matrix(ReportDF))
-
-    ReportDF.GameKey .= gameHash
-
-    return ReportDF
-
-end
-# matchReport(joinpath(savePath,saves[3]))
-
-localPath = "BattleReports"
-
-savesLocal = joinpath.(savePath,readdir(savePath))
-savesKillboard = joinpath.(localPath,readdir(localPath))
-
-allSaves = vcat(
-    savesLocal,
-    savesKillboard,
-)
-
-
-yes= matchReport(savesKillboard[5])
-
-
-
-
-allGamesDf = DataFrame()
-
-for i in allSaves
-    try
-        df = matchReport(i)
-        df.matchSavePath .= i
-        append!(allGamesDf,df;  cols = :union)
-    catch e
-        println(i)
-    end
-
-end
-allGamesDf
-names(allGamesDf)
-
-
-# typeof(allGamesDf[!,40])
-
-# for eachcol in 
-
-# mapcols(col -> replace(col, missing => 0), allGamesDf)
-
-# disallowmissing!(allGamesDf)
-
-filter!(x->x.Multiplayer == "true",allGamesDf)
-factions = ["ANS" "OSP"]
-a = "OSP"
-filter(x->x != a,factions)[1]
-
-
-# get the OSP vs ANS teams
-
-allGamesDf.faction .= ""
-allGamesDf.winningFaction .= ""
-
-names(allGamesDf)
-
-for r in eachrow(allGamesDf)
-    if r.HullKey ∈     
-                    [
-                    "Stock/Axford Heavy Cruiser"
-                    # "Stock/Bulk Feeder"
-                    # "Stock/Bulk Hauler"
-                    # "Stock/Container Hauler"
-                    "Stock/Keystone Destroyer"
-                    # "Stock/Ocello Cruiser"
-                    "Stock/Raines Frigate"
-                    # "Stock/Shuttle"
-                    "Stock/Solomon Battleship"
-                    "Stock/Sprinter Corvette"
-                    # "Stock/Tugboat"
-                    "Stock/Vauxhall Light Cruiser"
-                    ]
-                    r.faction = "ANS"
-                        
-    elseif r.HullKey ∈    
-                    [
-                    # "Stock/Axford Heavy Cruiser"
-                    "Stock/Bulk Feeder"
-                    "Stock/Bulk Hauler"
-                    "Stock/Container Hauler"
-                    # "Stock/Keystone Destroyer"
-                    "Stock/Ocello Cruiser"
-                    # "Stock/Raines Frigate"
-                    "Stock/Shuttle"
-                    # "Stock/Solomon Battleship"
-                    "Stock/Sprinter Corvette"
-                    "Stock/Tugboat"
-                    # "Stock/Vauxhall Light Cruiser"
-                    ]
-                    r.faction = "OSP"
-    end
-    if r.TeamID == r.WinningTeam 
-        r.winningFaction = r.faction
-    else 
-        r.winningFaction = filter(x->x != r.faction,factions)[1]
-    end
-end
-
-
-
-
-# allGamesDf.GameKey .= hash("")
-
-# for i in eachrow(allGamesDf)
-#     i.GameKey = hash(string(i.Time,i.GameStartTimestamp,i.GameDuration,i.WinningTeam,i.Multiplayer))
-# end
-
-coreShips = [
-    "Stock/Axford Heavy Cruiser"
-    "Stock/Bulk Feeder"
-    "Stock/Bulk Hauler"
-    "Stock/Container Hauler"
-    "Stock/Keystone Destroyer"
-    "Stock/Ocello Cruiser"
-    "Stock/Raines Frigate"
-    "Stock/Shuttle"
-    "Stock/Solomon Battleship"
-    "Stock/Sprinter Corvette"
-    "Stock/Tugboat"
-    "Stock/Vauxhall Light Cruiser"
-]
-
-# Get base ships only
-filter!(x->x.HullKey ∈  coreShips, allGamesDf)
-
-allGamesDf
-
-# save this as a julia object into battle reports
-jldsave("BattleReports/allGameDataComponents.jld2";df = allGamesDf)
-
-allGamesDf = load_object("BattleReports/allGameDataComponents.jld2")
-
-names(allGamesDf)
-
-#scratch
-
-
-
-
-
-
-
+vcat(getNth.(DA,1)...)
 
 
 
