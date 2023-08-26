@@ -47,7 +47,7 @@ assumes that there is a single value under the node, tries to pull it out, else 
 function getElementValue(node::Node,element::String)::String
     x = nothing
     try 
-        x = value(children(findElement(node,element))[1])
+        x = value(children(findElement(node,element,debug=false))[1])
     catch e
 
     end
@@ -91,7 +91,7 @@ function matchInfo(FullAfterActionReport::Node)
         Multiplayer = tryparse(Bool,getElementValue(FullAfterActionReport,"Multiplayer"))
         LobbyId = getElementValue(findElement(FullAfterActionReport,"LobbyId"),"Value")
 
-        Time = DateTime(getElementValue(FullAfterActionReport,"Time")[1:end-4],Dates.ISODateTimeFormat)
+        Time = tryparse(DateTime,(getElementValue(FullAfterActionReport,"Time")[1:end-4]))
 
         # create a hash so that (hopefully) games saved from 2 different players, gets picked up
         GameKey = hash(string(Multiplayer,Time,LobbyId,WinningTeam,GameStartTimestamp,GameFinished))
@@ -225,10 +225,10 @@ function DefencesReport(Defenses)
                 TargetsDestroyed = tryparse(Int64,getElementValue(Weapon,"TargetsDestroyed")),
                 RoundsCarried = tryparse(Int64,getElementValue(Weapon,"RoundsCarried")),
                 ShotsFired = tryparse(Int64,getElementValue(Weapon,"ShotsFired")),
-                ShotsFiredOverTimeLimit = tryparse(Float64,getElementValue(Weapon,"ShotsFiredOverTimeLimit",debug=false)),
+                ShotsFiredOverTimeLimit = tryparse(Float64,getElementValue(Weapon,"ShotsFiredOverTimeLimit")),
                 HitCount = tryparse(Int64,getElementValue(Weapon,"HitCount")),
-                ShotDuration = tryparse(Float64,getElementValue(Weapon,"ShotDuration",debug=false)),
-                CanBattleshort = tryparse(String,getElementValue(Weapon,"CanBattleshort",debug=false)),
+                ShotDuration = tryparse(Float64,getElementValue(Weapon,"ShotDuration",)),
+                CanBattleshort = getElementValue(Weapon,"CanBattleshort",),
             )
             df.WeaponCount .= WeaponCount
             append!(pdDF,df,promote=true)
@@ -306,10 +306,10 @@ function SensorsReport(Sensors)
             TargetsDestroyed = tryparse(Int64,getElementValue(i,"TargetsDestroyed")),
             RoundsCarried = tryparse(Int64,getElementValue(i,"RoundsCarried")),
             ShotsFired = tryparse(Int64,getElementValue(i,"ShotsFired")),
-            ShotsFiredOverTimeLimit = tryparse(Float64,getElementValue(i,"ShotsFiredOverTimeLimit",debug=false)),
+            ShotsFiredOverTimeLimit = tryparse(Float64,getElementValue(i,"ShotsFiredOverTimeLimit",)),
             HitCount = tryparse(Int64,getElementValue(i,"HitCount")),
-            ShotDuration = tryparse(Float64,getElementValue(i,"ShotDuration",debug=false)),
-            CanBattleshort = tryparse(Float64,getElementValue(i,"CanBattleshort",debug=false)),
+            ShotDuration = tryparse(Float64,getElementValue(i,"ShotDuration",)),
+            CanBattleshort = tryparse(Float64,getElementValue(i,"CanBattleshort",)),
 
         )
 
@@ -398,10 +398,10 @@ function PartStatusReport(PartStatus)
     for i in children(PartStatus)
 
         Key = getElementValue(i,"Key")
-        HealthPercent = parse(Float64,getElementValue(i,"HealthPercent"))
+        HealthPercent = tryparse(Float64,getElementValue(i,"HealthPercent"))
         IsDestroyed = getElementValue(i,"IsDestroyed")
 
-        push!(psDF,(Key,HealthPercent,IsDestroyed))
+        push!(psDF,(Key,HealthPercent,IsDestroyed),promote=true)
     end
     return psDF
 
@@ -586,7 +586,7 @@ function shipInfo(Node,gameKey=hash(""))
 end
 
 function matchReport2(_filename)
-    try 
+    # try 
         # fn = @raw_str(_filename)
         if size(readlines(_filename),1) == 2
             # parse(Node, str)
@@ -613,10 +613,10 @@ function matchReport2(_filename)
  
         return (mi[2],ti,si...)
 
-    catch e
-        # println(_filename)
-        # println("Error parsing file")
-    end
+    # catch e
+    #     println(_filename)
+    #     println("Error parsing file")
+    # end
 
 end
 
@@ -636,21 +636,24 @@ allSaves = vcat(
     savesKillboard,
 )
 
-
+allSaves
 AllDataArray = []
 
 @showprogress for i in allSaves
-    x = matchReport2(i)
-    if !isnothing(x)
-        push!(AllDataArray, x)
+    try
+        x = matchReport2(i)
+        if !isnothing(x)
+            push!(AllDataArray, x)
+        end
+    catch e 
+        println(i)
     end
 end
+AllDataArray
 
 # "C:\Program Files (x86)\Steam\steamapps\common\Nebulous\Saves\SkirmishReports\Skirmish Report - MP - 30-Jul-2023 09-48-43.xml"
 
-matchReport2(savesLocal[2])
-
-""
+matchReport2(savesLocal[3])
 
 function getDf(a,n)
     df = DataFrame()
@@ -660,10 +663,6 @@ function getDf(a,n)
         end
     return df 
 end
-
-@raw_str("z")
-
-getDf(AllDataArray,7)
 
 # this creates the whole table from the single ones
 AllMatchReports = getDf(AllDataArray,1)
@@ -679,7 +678,8 @@ AllPdReports = getDf(AllDataArray,10)
 AllAmmReports = getDf(AllDataArray,11)
 AllDecoyReports = getDf(AllDataArray,12)
 AllEngineeringReports = getDf(AllDataArray,13)
-# vcat(getNth.(AllDataArray,14)...,cols = :union)
+# AllEngineeringReports = getDf(AllDataArray,14)
+
 
 AllReports = (
     AllMatchReports,
@@ -701,5 +701,5 @@ size(AllReports,1)
 
 jldsave("AllReports.jld2";df = AllReports)
 
-x = load_object("AllReports.jld2")
-x[1]
+load_object("AllReports.jld2")
+# x[1]
