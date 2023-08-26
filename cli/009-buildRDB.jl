@@ -47,7 +47,7 @@ assumes that there is a single value under the node, tries to pull it out, else 
 function getElementValue(node::Node,element::String)::String
     x = nothing
     try 
-        x = value(children(findElement(node,element,debug=false))[1])
+        x = value(children(findElement(node,element,false))[1])
     catch e
 
     end
@@ -386,6 +386,8 @@ function AntiShipReport(AntiShip)
 
 end
 
+
+
 """
 Takes a PartStatus Node and returns a DataFrame
 """
@@ -529,28 +531,28 @@ function shipInfo(Node,gameKey=hash(""))
 
                         insertcols!(psr,1,:shipKey => fill(shipKey,size(psr,1)))
 
-                        append!(partStatusDf,psr; cols = :union,promote=true)
+                        append!(partStatusDf,psr; cols = :union, promote = true)
 
                     EngagementHist = findElement(s,"EngagementHistory",false)
                         ehr = EngagementHistoryReport(EngagementHist)
 
                         insertcols!(ehr,1,:shipKey => fill(shipKey,size(ehr,1)))
 
-                        append!(EngagementHistDF,ehr; cols = :union,promote=true)
+                        append!(EngagementHistDF,ehr; cols = :union,promote = true)
 
                     AntiShip = findElement(s,"AntiShip",false)
                         asr = AntiShipReport(AntiShip)
 
                         insertcols!(asr,1,:shipKey => fill(shipKey,size(asr,1)))
 
-                        append!(AntiShipDF,asr; cols = :union)
+                        append!(AntiShipDF,asr;  cols = :union, promote = true)
 
                     Strike = findElement(s,"Strike")
                         mr = StrikeReport(Strike)
 
                         insertcols!(mr,1,:shipKey => fill(shipKey,size(mr,1)))
 
-                        append!(StrikeDF,mr; cols = :union)
+                        append!(StrikeDF,mr; cols = :union, promote = true)
 
                     Sensors = findElement(s,"Sensors")
                         sr = SensorsReport(Sensors)[1]
@@ -559,8 +561,8 @@ function shipInfo(Node,gameKey=hash(""))
                         insertcols!(sr,1,:shipKey => fill(shipKey,size(sr,1)))
                         insertcols!(shlr,1,:shipKey => fill(shipKey,size(shlr,1)))
                         
-                        append!(SensorsDF,sr; cols = :union)
-                        append!(SensorsHighLevelDF,shlr; cols = :union)
+                        append!(SensorsDF,sr;  cols = :union, promote = true)
+                        append!(SensorsHighLevelDF,shlr;  cols = :union, promote = true)
 
 
                     Defenses = findElement(s,"Defenses",false)
@@ -570,14 +572,14 @@ function shipInfo(Node,gameKey=hash(""))
                         insertcols!(D[2],1,:shipKey => fill(shipKey,size(D[2],1)))
                         insertcols!(D[3],1,:shipKey => fill(shipKey,size(D[3],1)))
 
-                        append!(PointDefenceDF,D[1]; cols = :union)
-                        append!(AmmDF,D[2]; cols = :union)
-                        append!(DecoyDF,D[3]; cols = :union)
+                        append!(PointDefenceDF,D[1]; cols = :union, promote = true)
+                        append!(AmmDF,D[2];  cols = :union, promote = true)
+                        append!(DecoyDF,D[3];  cols = :union, promote = true)
 
                     Engineering = findElement(s,"Engineering")
                     eR = EngineeringReport(Engineering)
                     insertcols!(eR,1,:shipKey => fill(shipKey,size(eR,1)))
-                    append!(EngineeringDF,eR)
+                    append!(EngineeringDF,eR, cols = :union, promote = true)
             end
         end
     end
@@ -649,7 +651,7 @@ AllDataArray = []
         println(i)
     end
 end
-AllDataArray
+AllDataArray[1]
 
 # "C:\Program Files (x86)\Steam\steamapps\common\Nebulous\Saves\SkirmishReports\Skirmish Report - MP - 30-Jul-2023 09-48-43.xml"
 
