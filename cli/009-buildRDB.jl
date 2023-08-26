@@ -1,4 +1,4 @@
-using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, Flux, CUDA, OneHotArrays, StatsBase, ProgressMeter, Plots, GLM, JLD2 
+using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, OneHotArrays, StatsBase, ProgressMeter, Plots, JLD2 
 
 
 # so the goal of this, is to turn a neb battle report into a single row that could be fed into a NN.
@@ -612,14 +612,9 @@ function matchReport2(_filename)
         return (mi[2],ti,si...)
 
     catch e
-        println(_filename)
-        println("Error parsing file")
-
+        # println(_filename)
+        # println("Error parsing file")
     end
-
-    # FullAfterActionReport = findElement(doc,"FullAfterActionReport")
-    # return (matchInfo(FullAfterActionReport)[2],matchInfo(FullAfterActionReport)[1])
-
 
 end
 
@@ -642,7 +637,7 @@ allSaves = vcat(
 
 AllDataArray = []
 
-for i in allSaves
+@showprogress for i in allSaves
     x = matchReport2(i)
     if !isnothing(x)
         push!(AllDataArray, x)
@@ -670,91 +665,39 @@ getDf(AllDataArray,7)
 
 # this creates the whole table from the single ones
 AllMatchReports = getDf(AllDataArray,1)
-AllTeamReports = vcat(getNth.(AllDataArray,2)...,cols = :union)
-AllShipReports = vcat(getNth.(AllDataArray,3)...,cols = :union)
-AllPartReports = vcat(getNth.(AllDataArray,4)...,cols = :union)
-AllEngagementReports = vcat(getNth.(AllDataArray,5)...,cols = :union)
-AllWeaponReports = vcat(getNth.(AllDataArray,6)...,cols = :union)
-AllMissileReports = vcat(getNth.(AllDataArray,7)...,cols = :union)
-AllEwarReports = vcat(getNth.(AllDataArray,8)...,cols = :union)
-AllSensorsReport = vcat(getNth.(AllDataArray,9)...,cols = :union)
-AllPdReports = vcat(getNth.(AllDataArray,10)...,cols = :union)
-AllAmmReports = vcat(getNth.(AllDataArray,11)...,cols = :union)
-AllDecoyReports = vcat(getNth.(AllDataArray,12)...,cols = :union)
-AllEngineeringReports = vcat(getNth.(AllDataArray,13)...,cols = :union)
+AllTeamReports = getDf(AllDataArray,2)
+AllShipReports = getDf(AllDataArray,3)
+AllPartReports = getDf(AllDataArray,4)
+AllEngagementReports = getDf(AllDataArray,5)
+AllWeaponReports = getDf(AllDataArray,6)
+AllMissileReports = getDf(AllDataArray,7)
+AllEwarReports = getDf(AllDataArray,8)
+AllSensorsReport = getDf(AllDataArray,9)
+AllPdReports = getDf(AllDataArray,10)
+AllAmmReports = getDf(AllDataArray,11)
+AllDecoyReports = getDf(AllDataArray,12)
+AllEngineeringReports = getDf(AllDataArray,13)
 # vcat(getNth.(AllDataArray,14)...,cols = :union)
 
-allSaves
+AllReports = (
+    AllMatchReports,
+    AllTeamReports,
+    AllShipReports,
+    AllPartReports,
+    AllEngagementReports,
+    AllWeaponReports,
+    AllMissileReports,
+    AllEwarReports,
+    AllSensorsReport,
+    AllPdReports,
+    AllAmmReports,
+    AllDecoyReports,
+    AllEngineeringReports,
+)
 
+size(AllReports,1)
 
+jldsave("AllReports.jld2";df = AllReports)
 
-
-
-filename = savesLocal[1]
-
-doc = parse(Node,readlines(filename)[2])
-doc = read(filename, Node)
-FullAfterActionReport = findElement(doc,"FullAfterActionReport")
-findElement(FullAfterActionReport)
-
-# matchInfo(FullAfterActionReport)
-matchReport2(savesLocal[2])
-
-shups = findElement(findElement(findElement(FullAfterActionReport,"Teams")[1],"Players")[2],"Ships")[3]
-# findElement(shups)
-
-x = findElement(shups,"Engineering")
-w = findElement(x,"Efficiency")
-getElementValue(x,"Efficiency")
-
-findElement(findElement(w,"Efficiency"))
-
-
-# z = children(w)[1]
-(findElement(z,"Weapon"))
-
-
-
-def = findElement(w,"DefensiveWeaponReport")
-getElementValue(x,"Rating")
-getElementValue(x,"TotalMissilesThreateningShip")
-getElementValue(x,"TotalMissilesEngaged")
-getElementValue(x,"PeakTracksHeld")
-getElementValue(x,"TotalTimeJammed")
-getElementValue(x,"TracksLostToJamming")
-
-
-w1 = children(w)[1]
-
-
-EngineeringReport(findElement(shups,"Engineering"))
-
-AAA = DefencesReport(findElement(shups,"Defenses"))
-huh = findElement(shups,"Defenses")
-isnothing(huh)
-
-
-
-
-EngagementHistoryReport(PartStatus)
-
-
-
-getElementValue(shups,)
-
-
-tmz = findElement(FullAfterActionReport,"Teams")
-
-
-DA = shipInfo(tmz);
-size(DA,1)
-AAA = DA[11]
-
-
-vcat(getNth.(DA,1)...)
-
-
-
-
-
-
+x = load_object("AllReports.jld2")
+x[1]
