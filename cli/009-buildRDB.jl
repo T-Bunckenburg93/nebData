@@ -82,13 +82,13 @@ function matchInfo(FullAfterActionReport::Node)
 
     try
 
-        GameFinished = getElementValue(FullAfterActionReport,"GameFinished")
-        GameStartTimestamp = getElementValue(FullAfterActionReport,"GameStartTimestamp")
+        GameFinished = tryparse(Bool,getElementValue(FullAfterActionReport,"GameFinished"))
+        GameStartTimestamp = tryparse(Int64,getElementValue(FullAfterActionReport,"GameStartTimestamp"))
         WinningTeam = getElementValue(FullAfterActionReport,"WinningTeam")
-        LocalPlayerWon = getElementValue(FullAfterActionReport,"LocalPlayerWon")
-        LocalPlayerSpectator = getElementValue(FullAfterActionReport,"LocalPlayerSpectator")
-        LocalPlayerTeam = getElementValue(FullAfterActionReport,"LocalPlayerTeam")
-        Multiplayer = getElementValue(FullAfterActionReport,"Multiplayer")
+        LocalPlayerWon = tryparse(Bool,getElementValue(FullAfterActionReport,"LocalPlayerWon"))
+        LocalPlayerSpectator = tryparse(Bool,getElementValue(FullAfterActionReport,"LocalPlayerSpectator"))
+        LocalPlayerTeam = tryparse(Bool,getElementValue(FullAfterActionReport,"LocalPlayerTeam"))
+        Multiplayer = tryparse(Bool,getElementValue(FullAfterActionReport,"Multiplayer"))
         LobbyId = getElementValue(findElement(FullAfterActionReport,"LobbyId"),"Value")
 
         Time = DateTime(getElementValue(FullAfterActionReport,"Time")[1:end-4],Dates.ISODateTimeFormat)
@@ -149,7 +149,7 @@ function teamInfo(Node,gameKey=hash(""))
                     FleetPrefix=FleetPrefix            
                     )
 
-                append!(teamdf,all)
+                append!(teamdf,all,promote=true)
             end
 
         end
@@ -167,27 +167,29 @@ Takes a Engineering Node and returns a DataFrame
 """
 function EngineeringReport(Engineering)
     eDF = DataFrame(
-        Efficiency = getElementValue(Engineering,"Efficiency"),
+        Efficiency = tryparse(Float64,getElementValue(Engineering,"Efficiency")),
         Rating = getElementValue(Engineering,"Rating"),
-        OptimumPower = getElementValue(Engineering,"OptimumPower"),
-        AveragePower = getElementValue(Engineering,"AveragePower"),
-        PeakPowerDemand = getElementValue(Engineering,"PeakPowerDemand"),
-        TotalGameTime = getElementValue(Engineering,"TotalGameTime"),
-        ImmobilizedDuration = getElementValue(Engineering,"ImmobilizedDuration"),
-        AverageThrusterCond = getElementValue(Engineering,"AverageThrusterCond"),
-        DamageRepaired = getElementValue(Engineering,"DamageRepaired"),
-        RestoresTotal = getElementValue(Engineering,"RestoresTotal"),
-        RestoresConsumed = getElementValue(Engineering,"RestoresConsumed"),
-        RestoresDestroyed = getElementValue(Engineering,"RestoresDestroyed"),
-        RestoresRemaining = getElementValue(Engineering,"RestoresRemaining"),
-        CriticalComponentCount = getElementValue(Engineering,"CriticalComponentCount"),
-        CriticalComponentsLeftDestroyed = getElementValue(Engineering,"CriticalComponentsLeftDestroyed"),
-        DCTeamsCarried = getElementValue(Engineering,"DCTeamsCarried"),
-        DCTeamsSurvived = getElementValue(Engineering,"DCTeamsSurvived"),
-        DCTeamsHeavyCasualties = getElementValue(Engineering,"DCTeamsHeavyCasualties"),
+        OptimumPower = tryparse(Int64,getElementValue(Engineering,"OptimumPower")),
+        AveragePower = tryparse(Int64,getElementValue(Engineering,"AveragePower")),
+        PeakPowerDemand = tryparse(Int64,getElementValue(Engineering,"PeakPowerDemand")),
+        TotalGameTime = tryparse(Float64,getElementValue(Engineering,"TotalGameTime")),
+        ImmobilizedDuration = tryparse(Int64,getElementValue(Engineering,"ImmobilizedDuration")),
+        AverageThrusterCond = tryparse(Float64,getElementValue(Engineering,"AverageThrusterCond")),
+        DamageRepaired = tryparse(Float64,getElementValue(Engineering,"DamageRepaired")),
+        RestoresTotal = tryparse(Int64,getElementValue(Engineering,"RestoresTotal")),
+        RestoresConsumed = tryparse(Int64,getElementValue(Engineering,"RestoresConsumed")),
+        RestoresDestroyed = tryparse(Int64,getElementValue(Engineering,"RestoresDestroyed")),
+        RestoresRemaining = tryparse(Int64,getElementValue(Engineering,"RestoresRemaining")),
+        CriticalComponentCount = tryparse(Int64,getElementValue(Engineering,"CriticalComponentCount")),
+        CriticalComponentsLeftDestroyed = tryparse(Int64,getElementValue(Engineering,"CriticalComponentsLeftDestroyed")),
+        DCTeamsCarried = tryparse(Int64,getElementValue(Engineering,"DCTeamsCarried")),
+        DCTeamsSurvived = tryparse(Int64,getElementValue(Engineering,"DCTeamsSurvived")),
+        DCTeamsHeavyCasualties = tryparse(Int64,getElementValue(Engineering,"DCTeamsHeavyCasualties")),
     )
     return eDF
 end
+
+Int64
 
 """
 Takes a Defenses Node and returns 2 DataFrames
@@ -217,19 +219,19 @@ function DefencesReport(Defenses)
                 Name = getElementValue(Weapon,"Name"),
                 GroupName = getElementValue(Weapon,"GroupName"),
                 WeaponKey = getElementValue(Weapon,"WeaponKey"),
-                MaxDamagePerShot = getElementValue(Weapon,"MaxDamagePerShot"),
-                TotalDamageDone = getElementValue(Weapon,"TotalDamageDone"),
-                TargetsAssigned = getElementValue(Weapon,"TargetsAssigned"),
-                TargetsDestroyed = getElementValue(Weapon,"TargetsDestroyed"),
-                RoundsCarried = getElementValue(Weapon,"RoundsCarried"),
-                ShotsFired = getElementValue(Weapon,"ShotsFired"),
-                # ShotsFiredOverTimeLimit = getElementValue(Weapon,"ShotsFiredOverTimeLimit"),
-                HitCount = getElementValue(Weapon,"HitCount"),
-                # ShotDuration = getElementValue(Weapon,"ShotDuration"),
-                # CanBattleshort = getElementValue(Weapon,"CanBattleshort"),
+                MaxDamagePerShot = tryparse(Int64,getElementValue(Weapon,"MaxDamagePerShot")),
+                TotalDamageDone = tryparse(Float64,getElementValue(Weapon,"TotalDamageDone")),
+                TargetsAssigned = tryparse(Int64,getElementValue(Weapon,"TargetsAssigned")),
+                TargetsDestroyed = tryparse(Int64,getElementValue(Weapon,"TargetsDestroyed")),
+                RoundsCarried = tryparse(Int64,getElementValue(Weapon,"RoundsCarried")),
+                ShotsFired = tryparse(Int64,getElementValue(Weapon,"ShotsFired")),
+                ShotsFiredOverTimeLimit = tryparse(Float64,getElementValue(Weapon,"ShotsFiredOverTimeLimit",debug=false)),
+                HitCount = tryparse(Int64,getElementValue(Weapon,"HitCount")),
+                ShotDuration = tryparse(Float64,getElementValue(Weapon,"ShotDuration",debug=false)),
+                CanBattleshort = tryparse(String,getElementValue(Weapon,"CanBattleshort",debug=false)),
             )
             df.WeaponCount .= WeaponCount
-            append!(pdDF,df)
+            append!(pdDF,df,promote=true)
         end
 
         for DefensiveMissileReport in children(MissileReports)
@@ -240,14 +242,14 @@ function DefencesReport(Defenses)
                 MissileName = getElementValue(DefensiveMissileReport,"MissileName"),
                 MissileDesc = getElementValue(DefensiveMissileReport,"MissileDesc"),
                 MissileKey = getElementValue(DefensiveMissileReport,"MissileKey"),
-                TotalCarried = getElementValue(DefensiveMissileReport,"TotalCarried"),
-                TotalTargets = getElementValue(DefensiveMissileReport,"TotalTargets"),
-                TotalExpended = getElementValue(DefensiveMissileReport,"TotalExpended"),
-                TotalInterceptions = getElementValue(DefensiveMissileReport,"TotalInterceptions"),
-                TotalSuccesses = getElementValue(DefensiveMissileReport,"TotalSuccesses"),
+                TotalCarried = tryparse(Int64,getElementValue(DefensiveMissileReport,"TotalCarried")),
+                TotalTargets = tryparse(Int64,getElementValue(DefensiveMissileReport,"TotalTargets")),
+                TotalExpended = tryparse(Int64,getElementValue(DefensiveMissileReport,"TotalExpended")),
+                TotalInterceptions = tryparse(Int64,getElementValue(DefensiveMissileReport,"TotalInterceptions")),
+                TotalSuccesses = tryparse(Int64,getElementValue(DefensiveMissileReport,"TotalSuccesses")),
             )
             # df.WeaponCount .= WeaponCount
-            append!(ammDF,df)
+            append!(ammDF,df,promote=true)
         end
 
         for DecoyReport in children(DecoyReports)
@@ -258,12 +260,12 @@ function DefencesReport(Defenses)
                 MissileName = getElementValue(DecoyReport,"MissileName"),
                 MissileDesc = getElementValue(DecoyReport,"MissileDesc"),
                 MissileKey = getElementValue(DecoyReport,"MissileKey"),
-                TotalCarried = getElementValue(DecoyReport,"TotalCarried"),
-                TotalExpended = getElementValue(DecoyReport,"TotalExpended"),
-                TotalSeductions = getElementValue(DecoyReport,"TotalSeductions"),
+                TotalCarried = tryparse(Int64,getElementValue(DecoyReport,"TotalCarried")),
+                TotalExpended = tryparse(Int64,getElementValue(DecoyReport,"TotalExpended")),
+                TotalSeductions = tryparse(Int64,getElementValue(DecoyReport,"TotalSeductions")),
             )
             # df.WeaponCount .= WeaponCount
-            append!(decoyDF,df)
+            append!(decoyDF,df,promote=true)
         end
     end
     return pdDF, ammDF, decoyDF
@@ -277,17 +279,17 @@ function SensorsReport(Sensors)
     sDF = DataFrame()
 
     SensorsAll = DataFrame(
-        GameStartTime = getElementValue(Sensors,"GameStartTime"),
-        TimeOfFirstTrack = getElementValue(Sensors,"TimeOfFirstTrack"),
-        PeakTracksHeld = getElementValue(Sensors,"PeakTracksHeld"),
-        TotalTimeJammed = getElementValue(Sensors,"TotalTimeJammed"),
-        TracksLostToJamming = getElementValue(Sensors,"TracksLostToJamming"),
-        TotalTimeTrackingEnemy = getElementValue(Sensors,"TotalTimeTrackingEnemy"),
-        TotalTimeTrackedByEnemy = getElementValue(Sensors,"TotalTimeTrackedByEnemy"),
-        TotalStealthTrackingTime = getElementValue(Sensors,"TotalStealthTrackingTime"),
-        StealthEfficiency = getElementValue(Sensors,"StealthEfficiency"),
-        TimeAtSensorEMCON = getElementValue(Sensors,"TimeAtSensorEMCON"),
-        TimeAtTotalEMCON = getElementValue(Sensors,"TimeAtTotalEMCON"),
+        GameStartTime = tryparse(Int64,getElementValue(Sensors,"GameStartTime")),
+        TimeOfFirstTrack = tryparse(Int64,getElementValue(Sensors,"TimeOfFirstTrack")),
+        PeakTracksHeld = tryparse(Int64,getElementValue(Sensors,"PeakTracksHeld")),
+        TotalTimeJammed = tryparse(Float64,getElementValue(Sensors,"TotalTimeJammed")),
+        TracksLostToJamming = tryparse(Float64,getElementValue(Sensors,"TracksLostToJamming")),
+        TotalTimeTrackingEnemy = tryparse(Int64,getElementValue(Sensors,"TotalTimeTrackingEnemy")),
+        TotalTimeTrackedByEnemy = tryparse(Int64,getElementValue(Sensors,"TotalTimeTrackedByEnemy")),
+        TotalStealthTrackingTime = tryparse(Int64,getElementValue(Sensors,"TotalStealthTrackingTime")),
+        StealthEfficiency = tryparse(Float64,getElementValue(Sensors,"StealthEfficiency")),
+        TimeAtSensorEMCON = tryparse(Float64,getElementValue(Sensors,"TimeAtSensorEMCON")),
+        TimeAtTotalEMCON = tryparse(Float64,getElementValue(Sensors,"TimeAtTotalEMCON")),
     )
 
     EWWeapons = findElement(Sensors,"EWWeapons")
@@ -298,20 +300,20 @@ function SensorsReport(Sensors)
             Name = getElementValue(i,"Name"),
             GroupName = getElementValue(i,"GroupName"),
             WeaponKey = getElementValue(i,"WeaponKey"),
-            MaxDamagePerShot = getElementValue(i,"MaxDamagePerShot"),
-            TotalDamageDone = getElementValue(i,"TotalDamageDone"),
-            TargetsAssigned = getElementValue(i,"TargetsAssigned"),
-            TargetsDestroyed = getElementValue(i,"TargetsDestroyed"),
-            RoundsCarried = getElementValue(i,"RoundsCarried"),
-            ShotsFired = getElementValue(i,"ShotsFired"),
-            # ShotsFiredOverTimeLimit = getElementValue(i,"ShotsFiredOverTimeLimit"),
-            HitCount = getElementValue(i,"HitCount"),
-            # ShotDuration = getElementValue(i,"ShotDuration"),
-            # CanBattleshort = getElementValue(i,"CanBattleshort"),
+            MaxDamagePerShot = tryparse(Int64,getElementValue(i,"MaxDamagePerShot")),
+            TotalDamageDone = tryparse(Int64,getElementValue(i,"TotalDamageDone")),
+            TargetsAssigned = tryparse(Int64,getElementValue(i,"TargetsAssigned")),
+            TargetsDestroyed = tryparse(Int64,getElementValue(i,"TargetsDestroyed")),
+            RoundsCarried = tryparse(Int64,getElementValue(i,"RoundsCarried")),
+            ShotsFired = tryparse(Int64,getElementValue(i,"ShotsFired")),
+            ShotsFiredOverTimeLimit = tryparse(Float64,getElementValue(i,"ShotsFiredOverTimeLimit",debug=false)),
+            HitCount = tryparse(Int64,getElementValue(i,"HitCount")),
+            ShotDuration = tryparse(Float64,getElementValue(i,"ShotDuration",debug=false)),
+            CanBattleshort = tryparse(Float64,getElementValue(i,"CanBattleshort",debug=false)),
 
         )
 
-        append!(sDF,df)
+        append!(sDF,df,promote=true)
     end
     return sDF,SensorsAll
 
@@ -332,20 +334,20 @@ function StrikeReport(Strike)
             MissileName = getElementValue(i,"MissileName"),
             MissileDesc = getElementValue(i,"MissileDesc"),
             MissileKey = getElementValue(i,"MissileKey"),
-            TotalCarried = getElementValue(i,"TotalCarried"),
-            TotalExpended = getElementValue(i,"TotalExpended"),
-            IndividualDamagePotential = getElementValue(i,"IndividualDamagePotential"),
-            TotalDamageDone = getElementValue(i,"TotalDamageDone"),
-            Hits = getElementValue(i,"Hits"),
-            Misses = getElementValue(i,"Misses"),
-            Softkills = getElementValue(i,"Softkills"),
-            Hardkills = getElementValue(i,"Hardkills"),
+            TotalCarried = tryparse(Int64,getElementValue(i,"TotalCarried")),
+            TotalExpended = tryparse(Int64,getElementValue(i,"TotalExpended")),
+            IndividualDamagePotential = tryparse(Int64,getElementValue(i,"IndividualDamagePotential")),
+            TotalDamageDone = tryparse(Float64,getElementValue(i,"TotalDamageDone")),
+            Hits = tryparse(Int64,getElementValue(i,"Hits")),
+            Misses = tryparse(Int64,getElementValue(i,"Misses")),
+            Softkills = tryparse(Int64,getElementValue(i,"Softkills")),
+            Hardkills = tryparse(Int64,getElementValue(i,"Hardkills")),
             # Efficiency=Efficiency,
             # Rating=Rating,
 
         )
 
-        append!(sDF,df)
+        append!(sDF,df,promote=true)
     end
     return sDF
 
@@ -366,19 +368,19 @@ function AntiShipReport(AntiShip)
             Name = getElementValue(i,"Name"),
             GroupName = getElementValue(i,"GroupName"),
             WeaponKey = getElementValue(i,"WeaponKey"),
-            MaxDamagePerShot = getElementValue(i,"MaxDamagePerShot"),
-            TotalDamageDone = getElementValue(i,"TotalDamageDone"),
-            TargetsAssigned = getElementValue(i,"TargetsAssigned"),
-            TargetsDestroyed = getElementValue(i,"TargetsDestroyed"),
-            RoundsCarried = getElementValue(i,"RoundsCarried"),
-            ShotsFired = getElementValue(i,"ShotsFired"),
-            HitCount = getElementValue(i,"HitCount"),
+            MaxDamagePerShot = tryparse(Float64,getElementValue(i,"MaxDamagePerShot")),
+            TotalDamageDone = tryparse(Float64,getElementValue(i,"TotalDamageDone")),
+            TargetsAssigned = tryparse(Int64,getElementValue(i,"TargetsAssigned")),
+            TargetsDestroyed = tryparse(Int64,getElementValue(i,"TargetsDestroyed")),
+            RoundsCarried = tryparse(Int64,getElementValue(i,"RoundsCarried")),
+            ShotsFired = tryparse(Int64,getElementValue(i,"ShotsFired")),
+            HitCount = tryparse(Int64,getElementValue(i,"HitCount")),
             # Efficiency=Efficiency,
             # Rating=Rating,
 
         )
 
-        append!(asDF,df)
+        append!(asDF,df,promote=true)
     end
     return asDF
 
@@ -459,19 +461,19 @@ function shipInfo(Node,gameKey=hash(""))
                     HullString = getElementValue(s,"HullString")
                     HullKey = getElementValue(s,"HullKey")
                     Eliminated = getElementValue(s,"Eliminated")
-                    EliminatedTimestamp = getElementValue(s,"EliminatedTimestamp")
-                    WasDefanged = getElementValue(s,"WasDefanged")
-                    DefangedTimestamp = getElementValue(s,"DefangedTimestamp")
-                    OriginalCrew = getElementValue(s,"OriginalCrew")
-                    FinalCrew = getElementValue(s,"FinalCrew")
-                    TotalDamageReceived = getElementValue(s,"TotalDamageReceived")
-                    TotalDamageRepaired = getElementValue(s,"TotalDamageRepaired")
-                    TotalDamageDealt = getElementValue(s,"TotalDamageDealt")
-                    Condition = getElementValue(s,"Condition")
-                    TotalTimeInContact = getElementValue(s,"TotalTimeInContact")
-                    OriginalPointCost = getElementValue(s,"OriginalPointCost")
-                    TotalDistanceTravelled = getElementValue(s,"TotalDistanceTravelled")
-                    AmmoPercentageExpended = getElementValue(s,"AmmoPercentageExpended")
+                    EliminatedTimestamp = tryparse(Int64,getElementValue(s,"EliminatedTimestamp"))
+                    WasDefanged = tryparse(Bool,getElementValue(s,"WasDefanged"))
+                    DefangedTimestamp = tryparse(Int64,getElementValue(s,"DefangedTimestamp"))
+                    OriginalCrew = tryparse(Int64,getElementValue(s,"OriginalCrew"))
+                    FinalCrew = tryparse(Int64,getElementValue(s,"FinalCrew"))
+                    TotalDamageReceived = tryparse(Int64,getElementValue(s,"TotalDamageReceived"))
+                    TotalDamageRepaired = tryparse(Int64,getElementValue(s,"TotalDamageRepaired"))
+                    TotalDamageDealt = tryparse(Int64,getElementValue(s,"TotalDamageDealt"))
+                    Condition = tryparse(Float64,getElementValue(s,"Condition"))
+                    TotalTimeInContact = tryparse(Int64,getElementValue(s,"TotalTimeInContact"))
+                    OriginalPointCost = tryparse(Int64,getElementValue(s,"OriginalPointCost"))
+                    TotalDistanceTravelled = tryparse(Float64,getElementValue(s,"TotalDistanceTravelled"))
+                    AmmoPercentageExpended = tryparse(Float64,getElementValue(s,"AmmoPercentageExpended"))
 
                     shipKey = hash(string(
                         gameKey,
@@ -518,7 +520,7 @@ function shipInfo(Node,gameKey=hash(""))
                         AmmoPercentageExpended=AmmoPercentageExpended,
                     )
 
-                append!(shipdf,all)
+                append!(shipdf,all,promote=true)
 
                     # ok so now we do the the other components.
 
@@ -527,14 +529,14 @@ function shipInfo(Node,gameKey=hash(""))
 
                         insertcols!(psr,1,:shipKey => fill(shipKey,size(psr,1)))
 
-                        append!(partStatusDf,psr; cols = :union)
+                        append!(partStatusDf,psr; cols = :union,promote=true)
 
                     EngagementHist = findElement(s,"EngagementHistory",false)
                         ehr = EngagementHistoryReport(EngagementHist)
 
                         insertcols!(ehr,1,:shipKey => fill(shipKey,size(ehr,1)))
 
-                        append!(EngagementHistDF,ehr; cols = :union)
+                        append!(EngagementHistDF,ehr; cols = :union,promote=true)
 
                     AntiShip = findElement(s,"AntiShip",false)
                         asr = AntiShipReport(AntiShip)
@@ -654,7 +656,7 @@ function getDf(a,n)
     df = DataFrame()
         dfs = getNth.(a,n)
         for i in dfs
-            append!(df,i,cols = :union)
+            append!(df,i,cols = :union,promote=true)
         end
     return df 
 end
