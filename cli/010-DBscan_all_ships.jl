@@ -278,10 +278,10 @@ AFcl[1][4]
 function getMDString(AFcl,i)
 
     # Format each DataFrame using PrettyTables
-    Hulls = pretty_table(String,AFcl[i][1],header = names(AFcl[i][1]))
-    Components = pretty_table(String,AFcl[i][2],header = names(AFcl[i][2]))
-    Exemplar = pretty_table(String,AFcl[i][3],header = names(AFcl[i][3]))
-    Outcome = pretty_table(String,AFcl[i][4],header = names(AFcl[i][4]))
+    Hulls = pretty_table(String,AFcl[i][1],header = names(AFcl[i][1]),tf = tf_markdown)
+    Components = pretty_table(String,AFcl[i][2],header = names(AFcl[i][2]),tf = tf_markdown)
+    Exemplar = pretty_table(String,AFcl[i][3],header = names(AFcl[i][3]),tf = tf_markdown)
+    Outcome = pretty_table(String,AFcl[i][4],header = names(AFcl[i][4]),tf = tf_markdown)
 
     sz = sum(AFcl[i][1].Count)
 
