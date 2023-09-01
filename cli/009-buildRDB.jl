@@ -1,4 +1,4 @@
-using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, OneHotArrays, StatsBase, ProgressMeter, Plots, JLD2 
+using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, OneHotArrays, StatsBase, ProgressMeter, Plots, JLD2, CSV
 
 
 # so the goal of this, is to turn a neb battle report into a single row that could be fed into a NN.
@@ -73,6 +73,7 @@ end
 # OK, so I want a function that takes in a battle report, and creates a bunch of tables, that can then be linked.
 # This is so I can then use SQL to take all the tables that I currently have.
 
+tryparse(Float64,"")
 
 # Get a whole bunch of game info
 """
@@ -212,7 +213,7 @@ function DefencesReport(Defenses)
         DecoyReports = findElement(Defenses,"DecoyReports")
 
         for DefensiveWeaponReport in children(WeaponReports)
-            WeaponCount = getElementValue(DefensiveWeaponReport,"WeaponCount")
+            WeaponCount = tryparse(Int64,getElementValue(DefensiveWeaponReport,"WeaponCount"))
             Weapon = findElement(DefensiveWeaponReport,"Weapon")
 
             df = DataFrame(
@@ -433,7 +434,7 @@ end
 
 
 # ok so now we want the ship info
-function shipInfo(Node,gameKey=hash(""))
+function shipInfo(Node,gameKey=hash("")::UInt64)
 
     shipdf = DataFrame()
     partStatusDf = DataFrame()
@@ -611,7 +612,7 @@ function matchReport2(_filename)
         ti = teamInfo(Teams,gameKey)
 
         # and get the ship infomation
-        si = shipInfo(findElement(FullAfterActionReport,"Teams"))
+        si = shipInfo(findElement(FullAfterActionReport,"Teams"),gameKey)
  
         return (mi[2],ti,si...)
 
@@ -698,6 +699,22 @@ AllReports = (
     AllDecoyReports,
     AllEngineeringReports,
 )
+
+# Write out to CSV for posterity
+
+CSV.write("AllMatchReports.csv", AllMatchReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllTeamReports.csv", AllTeamReports  , transform=(col, val) -> something(val, missing))
+CSV.write("AllShipReports.csv", AllShipReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllPartReports.csv", AllPartReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllEngagementReports.csv", AllEngagementReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllMissileReports.csv", AllMissileReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllSensorsReport.csv", AllSensorsReport, transform=(col, val) -> something(val, missing))
+CSV.write("AllPdReports.csv", AllPdReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllAmmReports.csv", AllAmmReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllDecoyReports.csv", AllDecoyReports, transform=(col, val) -> something(val, missing))
+CSV.write("AllEngineeringReports.csv", AllEngineeringReports, transform=(col, val) -> something(val, missing))
+
+
 
 size(AllReports,1)
 

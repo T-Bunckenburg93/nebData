@@ -1,4 +1,4 @@
-using XML, Dates, DataFrames, StatsBase, JLD2, Clustering , MultivariateStats, OneHotArrays,Distances,CSV
+using XML, Dates, DataFrames, StatsBase, JLD2, Clustering , MultivariateStats, OneHotArrays,Distances,CSV,ProgressMeter
 
 HullInfo = CSV.read("data/hull_info.csv",DataFrame,stringtype=String)
 
@@ -156,7 +156,7 @@ sz = size(hullAtrribs,2)
 # minimum(norm.(eachrow(hullAtrribs)))
 # std(norm.(eachrow(hullAtrribs)))
 
-clustering = dbscan(rotl90(hullAtrribs), 0.05, min_neighbors = 2, min_cluster_size =2*sz)
+clustering = dbscan(rotl90(hullAtrribs), 0.1, min_neighbors = 2, min_cluster_size =2*sz)
 clustering.clusters
 
 filter(x->x==0,clustering.assignments)
@@ -230,4 +230,4 @@ for i in clustering.clusters
         push!(cl,EachCluster(i))
 end
 
-cl[end]
+cl[3]

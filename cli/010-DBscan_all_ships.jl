@@ -1,4 +1,4 @@
-using Dates, DataFrames, OneHotArrays, StatsBase, Plots, JLD2, Clustering, CSV, Distances,ProgressMeter,MultivariateStats, LinearAlgebra
+using Dates, DataFrames, OneHotArrays, StatsBase, Plots, JLD2, Clustering, CSV, Distances,ProgressMeter,MultivariateStats, LinearAlgebra, PrettyTables
 
 # jldsave("AllReports.jld2";df = AllReports)
 HullInfo = CSV.read("data/hull_info.csv",DataFrame,stringtype=String)
@@ -50,6 +50,7 @@ names(WeaponsFlat)
 
 
 AllMissileReports
+unique(AllMissileReports.MissileKey)
 AllMissileReports.MissileKey = string.("MIS-",AllMissileReports.MissileKey)
 missilesCarried = combine(groupby( AllMissileReports, [:shipKey,:MissileKey]), :TotalCarried => sum)
 missilesCarriedFlat = unstack(missilesCarried,1,2,3,fill=0)
@@ -60,9 +61,10 @@ AllEwarReports.GroupName = string.("EWAR-",AllEwarReports.GroupName)
 ewar = combine(groupby( AllEwarReports, [:shipKey,:GroupName]),  nrow)
 ewwarFlat = unstack(ewar,1,2,3,fill=0)
 
+AllPdReports.GroupName = first.(split.(AllPdReports.GroupName,"-"))
 AllPdReports
-AllPdReports.WeaponKey = string.("PD-",AllPdReports.WeaponKey)
-Pd = combine(groupby( AllPdReports, [:shipKey,:WeaponKey]),  :WeaponCount=>sum)
+AllPdReports.GroupName = string.("PD-",AllPdReports.GroupName)
+Pd = combine(groupby( AllPdReports, [:shipKey,:GroupName]),  :WeaponCount=>sum)
 PdFlat = unstack(Pd,1,2,3,fill=0)
 
 AllAmmReports
@@ -114,9 +116,8 @@ Mu = unique(M,dims=1)
 # Now we have the array, we can normalise it
 
 
-r = - (pairwise(Euclidean() , Mu', dims = 2 ).^2 )
+r = -(pairwise(Euclidean() , Mu', dims = 2 ).^2 )
 
-# r = .- (pairwise(Euclidean() , M', dims = 2 ) .+ rand.() ./10)
 
 medR = median(r)
 for i in 1:size(r, 1)
@@ -124,7 +125,8 @@ for i in 1:size(r, 1)
 end
 
 
-clustering = affinityprop(r; maxiter=500, tol=1e-6, damp=0.5,display = :iter)
+clustering = affinityprop(r; maxiter=500, tol=1e-6, damp=0.9,display = :iter)
+# clustering2 = affinityprop(r; maxiter=200, tol=1e-6, damp=0.99,display = :iter)
 
 clustering.exemplars
 clustering.assignments
@@ -132,133 +134,197 @@ mean(clustering.counts)
 
 # ok, so need to join this back on to the og table
 
-Mu
+
 
 UniqueHullsDf = DataFrame(Mu,names(hullAttribs))
 UniqueHullsDf.assignments = clustering.assignments
 
+# and put flags for the exemplars
+
+exmp = fill(0,size(UniqueHullsDf,1))
+
+for (i, val) in enumerate(clustering.exemplars)
+
+    exmp[val] = i
+
+end
+
+unique(exmp)
+# filter(x->x.assignments ∈ allAssignments ,clusterAssignments)
+
+
+# insertcols!(clusterAssignments,1, :HullKey => ships.HullKey)
+allAssignments = filter(x->x.nrow > 50,out).assignments
+UniqueHullsDf.exemplars = exmp
 
 clusterAssignments = leftjoin(hullAttribs,UniqueHullsDf, on= names(hullAttribs))
+clusterAssignments.hullKey = ships.HullKey
 
 out = sort(combine(groupby(clusterAssignments,:assignments),nrow),:nrow, rev = true)
 
-plot(out.nrow)
+ships.clusterAssignments=clusterAssignments.assignments
+shipsWinR = select(ships,[:shipKey,:clusterAssignments,])
 
-allAssignments = filter(x->x.nrow > 250,out).assignments
+leftjoin!(shipsWinR,
+unique(select(AllShipReports,["gameKey","shipKey","AccountId","Eliminated"])),
+on=:shipKey
+)
 
-filter(x->x.assignments ∈ allAssignments ,clusterAssignments)
+AllTeamReports
 
-clusterAssignments.hullKey = ships.HullKey
+leftjoin!(shipsWinR,
+unique(filter(x->x.AccountId != "0",select(AllTeamReports,["gameKey","AccountId","TeamID"]))),
+on=[:gameKey , :AccountId]
+)
 
-clusterAssignments
+leftjoin!(shipsWinR,
+rename(unique(select(AllMatchReports,["GameKey","WinningTeam"])),:GameKey => :gameKey),
+on=:gameKey
+)
+
+
+shipsWinR.win = shipsWinR.TeamID .==  shipsWinR.WinningTeam
+
+replace!(shipsWinR.Eliminated,
+    "Evacuated" => "Destroyed/Other",
+    "Withdrew" => "Destroyed/Other",
+    "Destroyed" => "Destroyed/Other",
+)
+
+i = allAssignments[32]
+
+
+
+
+function AFCluster(i::Int)
+
+    look = filter(x->x.assignments == i ,clusterAssignments)
+
+    hcnt = countmap(look.hullKey)
+    hullsOut = sort(DataFrame(Hulls = collect(keys(hcnt)), Count = collect(values(hcnt))),:Count,rev=true)
+
+    P = Matrix(select(look,names(look)[1:end-3]))
+    P2 = replace(P, missing=>0.0)
+
+    PCAOut = fit(PCA,P2';)
+
+    # PCAOut.
+    fieldnames(typeof(PCAOut))
+
+    Norm = DataFrame(Names = String[],PCANorm = Float64[], MeanVal = Float64[], proportion = Float64[], scaledProportion = Float64[])
+
+    for i in 1:size(PCAOut.proj,1)
+
+        avgValue =  mean(skipmissing(look[!,i]))
+        proportion =  sum(skipmissing(look[!,i]))/sum(skipmissing(hullAttribs[!,i])) 
+        scaledProportion = proportion * size(hullAttribs,1)/size(look,1)
+
+        push!(Norm,["",norm(PCAOut.proj[i,:]),avgValue,proportion,scaledProportion])
+
+    end
+
+
+    Norm.Names = names(look)[1:end-3]
+    namesOut = first(sort!(Norm,:scaledProportion,rev = true),15)
+
+    # ok, now get the exemplar
+    ex = first(filter(x->x.exemplars == i,clusterAssignments),1)
+
+    eachcol(ex)[2]
+
+    Cols2Keep = []
+    for (i,val) in enumerate(eachcol(ex)[1:end-2])
+        # try
+            if !ismissing(val[1]) && val[1] > 0 
+                push!(Cols2Keep,names(ex)[i])
+            end
+        # catch i 
+        #     println(i)
+        # end
+    end
+    # ex.variable .= 1
+    exemplarAttribs = stack(select(ex,vcat("hullKey",Cols2Keep)),vcat("hullKey",Cols2Keep))
+
+    filter!(x->x.variable != "assignments", exemplarAttribs)
+    filter!(x->x.variable != "Structural Integrity", exemplarAttribs)
+    filter!(x->x.Names != "Structural Integrity", namesOut)
+    # namesOut
+    # finally, get the winrate
+    # filter(x->x.clusterAssignments == i ships)
+
+    WR = filter(x->x.clusterAssignments == i, shipsWinR)
+    WinOutcome = filter(x->!ismissing(x.win) , unstack(combine(groupby(WR,[:win,:Eliminated]),nrow),:win,:Eliminated,:nrow,fill = 0))
+
+    return(hullsOut,namesOut,exemplarAttribs,WinOutcome)
+end
+
+
+AFcl = []
 allAssignments
-
-
-
-i = allAssignments[1]
-
-
-
-look = filter(x->x.assignments == i ,clusterAssignments)
-
-hullsOut = countmap(look.hullKey)
-
-P = Matrix(select(look,names(look)[1:end-2]))
-P2 = replace(P, missing=>0.0)
-
-PCAOut = fit(PCA,P2';)
-
-Norm = DataFrame(Norm = Float64[])
-
-for i in 1:size(PCAOut.proj,1)
-    push!(Norm,[norm(PCAOut.proj[i,:])])
+for i in allAssignments
+        push!(AFcl,AFCluster(i))
 end
 
-Norm.Names = names(look)[1:end-2]
-namesOut = first(sort!(Norm,:Norm,rev = true),15)
+AFcl[1][4]
+
+function getMDString(AFcl,i)
+
+    # Format each DataFrame using PrettyTables
+    Hulls = pretty_table(String,AFcl[i][1],header = names(AFcl[i][1]))
+    Components = pretty_table(String,AFcl[i][2],header = names(AFcl[i][2]))
+    Exemplar = pretty_table(String,AFcl[i][3],header = names(AFcl[i][3]))
+    Outcome = pretty_table(String,AFcl[i][4],header = names(AFcl[i][4]))
+
+    sz = sum(AFcl[i][1].Count)
+
+    # Save the styled DataFrames to a Markdown file
+    markdown_content = """
+    ## Cluster $i, $sz hulls
+
+    ### Hull Counts
+
+    $Hulls
+
+    ### Components
+
+    $Components
+
+    ### Exemplar
+
+    $Exemplar
+
+    ### Hull Outcome vs WinRate
+
+    $Outcome
+
+    """
+    return markdown_content
+end
+
+getMDString(AFcl,1)
 
 
-(hullsOut,namesOut)
+# so I want to create a bunch of MD strings that I then turn into MD
+sz = size(AFcl,1)
+MDString = """
+# Cluster Info on $sz clusters
+
+Here I'm doing a clustering analysis to build on the point distributon analysis I did initally. 
+The most common response, and my thoughts while I was building it, was that point cost is not a simple indication of ship build, and thus outcome. So I've spent a bit of time refining it.
+
+Ive tried to build a model that both accomodates common builds, but also includes more niche builds that do show up. 
+This has led to some overlap, and prossibly some differential of clusters that doesn't really exist, as well as lots of clusters ( $sz ), but I do feel this is reasonable representative of the number of hull types you can see in Nebulous.
+
+"""
+
+for i in 1:size(AFcl,1)
+
+    MDString = string(MDString,getMDString(AFcl,i))
+
+end
 
 
-
-
-
-
-
-
-
-
-
-function EachCluster(c1)
-
-    # get the vals of this cluster
-    inds = vcat(c1.core_indices,c1.boundary_indices)
-    look = hullAttribs[inds,:]
-    lookNorm = M_t[inds,:]
-
-    look.miss .= 0
-
-    missCols = []
-    incCols = []
-
-
-
-    mag = DataFrame(colNum = Int[],avMag = Float64[])
-
-    for i in 1:size(lookNorm,2)
-
-        push!(mag,(i,mean(lookNorm[:,i])))
-
+    filename = "docs/Cluster_groups.md"
+    open(filename, "w") do io
+        print(io, MDString)
     end
-    sort!(mag,:avMag, rev = true)
-
-    _colNames = first(mag,10).colNum
-    _vecMag = first(mag,10).avMag
-    _incColNames =  names(look)[_colNames]
-
-
-    elementProp = []
-    elementSum = []
-    for i in _colNames
-
-        push!(
-            elementProp,
-            sum(skipmissing(look[!,i]))/sum(skipmissing(hullAttribs[!,i])) 
-        )
-        push!(
-            elementSum,
-            mean(skipmissing(look[!,i])) 
-        )
-
-    end
-    elementProp
-    all = sort(DataFrame(element = _incColNames,_vecMag = _vecMag, prop = elementProp,mean = elementSum),:prop,rev = true)
-
-    Hulls = countmap(ships[inds,:].HullKey)
-        totalPtCost = ships[inds,:].OriginalPointCost
-
-    minCost = minimum(totalPtCost)
-    meanCost = round(mean(totalPtCost),digits=2)
-    medianCost = median(totalPtCost)
-    maxCost = maximum(totalPtCost)
-    stdDevCost = round(std(totalPtCost),digits=2)
-    clusterSz = size(totalPtCost,1)
-
-    return (Hulls,
-    all,
-    # DataFrame(componenets = _incColNames),
-    minCost,meanCost,medianCost,maxCost,stdDevCost,clusterSz)
-end
-
-cl = []
-
-for i in clustering.clusters
-
-        push!(cl,EachCluster(i))
-end
-
-cl[2]
-
-
-AllShipReports.OriginalPointCost
