@@ -415,7 +415,7 @@ end
 optim # parameters, momenta and output have all changed
 out2 = model(shipArray |> gpu) |> cpu  # first row is prob. of true, second row p(false)
 
-@show mean((out2[1,:] .> 0.5) .== outcomeArray)  
+@show mean((out2[1,:] .> 0.5) .== outcomeArray)
 
 plot(losses)
 

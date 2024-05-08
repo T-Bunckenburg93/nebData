@@ -63,7 +63,9 @@ function getElementValue(node::Node,element::String)::String
         return x
     end
 end
-
+function getElementValue(node::Node,nothing)::String
+return ""
+end
 
 """
 ```
@@ -86,11 +88,14 @@ outDf = DataFrame()
 
             x= fill("",sz)
             for i in 1:sz
-                x[i] = getElementValue(v,vals[i])
+                j = getElementValue(v,vals[i])
+                if !isnothing(j)
+                    x[i] = j
+                end
             end
 
             append!(outDf, 
-                    permutedims(DataFrame(Name1 = vals, Value1 = x),1)[!,2:end],
+                    permutedims(DataFrame(Name1 = string.(vals), Value1 = x),1)[!,2:end],
                     cols= :union
             )
         end
@@ -209,20 +214,39 @@ function ShipBattleReport(ShipBattleReportNode)::DataFrame
     AntiShip = findElement(ShipBattleReportNode,"AntiShip")
     Strike = findElement(ShipBattleReportNode,"Strike")
     Sensors = findElement(ShipBattleReportNode,"Sensors")
-    # Defenses = findElement(ShipBattleReportNode,"Defenses")
-    # Engineering = findElement(ShipBattleReportNode,"Engineering")
+    Defenses = findElement(ShipBattleReportNode,"Defenses")
 
     Weapons = findElement(AntiShip,"Weapons")
     Missiles = findElement(Strike,"Missiles")
     EWWeapons = findElement(Sensors,"EWWeapons")
 
-    # WeaponsDf = flattenSubReport(SubReport(Weapons),:GroupName,[:Name,:WeaponKey])
-    # MissilesDf = flattenSubReport(SubReport(Missiles),:MissileKey,[:MissileName,:MissileDesc])
-    # EWWeaponsDf = flattenSubReport(SubReport(EWWeapons),:WeaponKey,[:GroupName,:Name])
-
     WeaponsDf = pullOutSubReport(Weapons,:GroupName,[:TotalDamageDone,:TargetsAssigned,:TargetsDestroyed,:RoundsCarried,:ShotsFired,:HitCount])
     MissilesDf = pullOutSubReport(Missiles,:MissileKey,[:TotalCarried,:TotalExpended,:TotalDamageDone,:Hits,:Misses,:Softkills,:Hardkills])
     EWWeaponsDf = pullOutSubReport(EWWeapons,:Name,[:TargetsAssigned,:ShotDuration])
+
+    # This is the PD. WIP
+    PDdf = DataFrame()
+    PointDefenceDF = DataFrame()
+    if !isnothing(Defenses)   
+        PointDefence = findElement(Defenses,"WeaponReports")
+
+        for i in 1:size(children(PointDefence),1)
+
+            # this code is gross but seems to work
+            Pdata = select(SubReport((PointDefence[i])),["Name","RoundsCarried"])
+            filter!(x -> any(!ismissing, x), Pdata)
+            Pdata.WeaponCount .= getElementValue(PointDefence[i],"WeaponCount")
+
+            # now we need to make this long
+            # we're effectively just looking at PD for this.
+            filter!(x-> !contains(x.Name,"HE-RPF"),Pdata)
+
+            append!(PDdf,Pdata, cols = :union)
+        end
+        PDdfLong = stack(PDdf,["RoundsCarried","WeaponCount"])
+        PDdfLong[!,:variable] = string.(PDdfLong[!,"Name"],"::",PDdfLong[!,:variable])
+        PointDefenceDF = unstack(select(PDdfLong,Not("Name")),:variable,:value)
+    end
     
     df = DataFrame(
         ShipName = ShipName,
@@ -247,6 +271,7 @@ function ShipBattleReport(ShipBattleReportNode)::DataFrame
                     WeaponsDf,
                     MissilesDf,
                     EWWeaponsDf,
+                    PointDefenceDF,
                     )
 
     return dfOut
@@ -522,7 +547,7 @@ names(allGamesDf)
 doc = parse(Node,readlines(savesKillboard[1])[2])
 
 
-matchReport(savesKillboard[3])
+AAAAATEST = matchReport(savesKillboard[2])
 
 FullAfterActionReport = findElement(doc,"FullAfterActionReport")
 Teams = findElement(FullAfterActionReport,"Teams")
@@ -542,6 +567,75 @@ AntiShip = findElement(ShipBattleReport2,"AntiShip")
 Strike = findElement(ShipBattleReport2,"Strike")
 Sensors = findElement(ShipBattleReport2,"Sensors")
 Defenses = findElement(ShipBattleReport2,"Defenses")
+PDreports = findElement(Defenses,"WeaponReports")
+
+
+
+
+df = DataFrame()
+for i in 1:size(children(PDreports),1)
+
+    # this code is gross but seems to work
+    data = select(SubReport((PDreports[i])),["Name","RoundsCarried"])
+    filter!(x -> any(!ismissing, x), data)
+    data.WeaponCount .= getElementValue(PDreports[i],"WeaponCount")
+
+    # now we need to make this long
+    # we're effectively just looking at PD for this.
+    filter!(x-> !contains(x.Name,"HE-RPF"),data)
+
+    
+
+    append!(df,data, cols = :union)
+end
+df
+
+dfLong = stack(df,["RoundsCarried","WeaponCount"])
+dfLong[!,:variable] = string.(dfLong[!,"Name"],"::",dfLong[!,:variable])
+dfOut = unstack(select(dfLong,Not("Name")),:variable,:value)
+
+
+# dfLong = stack(dfIn,names(dfIn,Not(dfkey)))
+
+# replace!(dfLong.value, "" => "0")
+# replace!(dfLong.value, missing => 0.0)
+
+# filter!(x->x.value ∉ [ "true" "false" ""],dfLong)
+# filter!(x->!ismissing(x.value) ,dfLong)
+
+
+# # dfLong.value = parse.(Float64, dfLong.value)
+# # combine types and vars
+# dfLong[!,:variable] = string.(dfLong[!,dfkey],"::",dfLong[!,:variable])
+
+# # and unstack so we have type::var collums, with the value under
+# dfOut = unstack(select(dfLong,Not(dfkey)),:variable,:value)
+
+
+
+
+
+
+size(PDreports,1)
+
+children(PDreports)[1]
+
+findElement(PDreports[1],"Weapon")
+SubReport(findElement(PDreports[1],"Weapon"))
+children(findElement(PDreports[1],"Weapon"))
+names(df)
+
+# pullOutSubReport(i,:WeaponKey,[:TargetsAssigned,:ShotDuration])
+
+findElement(PDreports[1],"WeaponCount")
+
+getElementValue(PDreports[1],"WeaponCount")
+
+
+
+
+
+
 # Engineering = findElement(ShipBattleReport2,"Engineering")
 
 Weapons = findElement(AntiShip,"Weapons")
@@ -550,7 +644,7 @@ EWWeapons = findElement(Sensors,"EWWeapons")
 
 Missiles
 
-SubReport(findElement(Defenses,"WeaponReports"))
+SubReport(findElement(Defenses,"WeaponReports")[1])
 findElement(Defenses,"MissileReports")
 findElement(Defenses,"DecoyReports")
 

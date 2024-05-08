@@ -142,7 +142,7 @@ function teamInfo(Node,gameKey=hash(""))
                 
 
                 all = DataFrame(
-                    gameKey=gameKey,
+                    GameKey=gameKey,
                     AccountId=AccountId,
                     TeamID=TeamID,
                     PlayerName=PlayerName,
@@ -501,7 +501,7 @@ function shipInfo(Node,gameKey=hash("")::UInt64)
                     ))
 
                     all = DataFrame(
-                        gameKey=gameKey,
+                        GameKey=gameKey,
                         AccountId=AccountId,
                         shipKey=shipKey,
                         ShipName=ShipName,
@@ -722,3 +722,5 @@ jldsave("AllReports.jld2";df = AllReports)
 
 load_object("AllReports.jld2")
 # x[1]
+
+AllWeaponReports
