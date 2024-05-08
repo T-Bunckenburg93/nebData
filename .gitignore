@@ -2,3 +2,4 @@ BattleReports
 *.jld2
 *.zip
 avg.csv
+*.csv
