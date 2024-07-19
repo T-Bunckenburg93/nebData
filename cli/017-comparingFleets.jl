@@ -1,4 +1,4 @@
-using JLD2, Dates, CSV, DuckDB, DataFrames, Flux, StatsBase, LinearAlgebra, Random, Plots, ProgressMeter, CUDA, TSne
+using JLD2, Dates, CSV, DuckDB, DataFrames, Flux, StatsBase, LinearAlgebra, Random, Plots, ProgressMeter, CUDA, TSne, StatsPlots
 
 """
 Gets the nth element of the vector x
@@ -275,6 +275,7 @@ result = select(tr,[:GameKey,:AccountId,:win])
 
 trainDF = innerjoin(result,ship,on=[:GameKey,:AccountId])
 # sort!(trainDF,:win)
+ship
 
 # trainDF.win2 = trainDF.win .+ randn(size(trainDF,1))
 
@@ -284,28 +285,20 @@ trainDF
 
 combine(groupby(trainDF,[:GameKey,:AccountId,:win]),nrow)
 
-ux = unique(trainDF.HullKey)
+ux = ["Sprinter_Corvette", "Raines_Frigate", "Vauxhall_Light_Cruiser", "Keystone_Destroyer", "Bulk_Hauler", "Tugboat", "Shuttle", "Bulk_Feeder", "Ocello_Cruiser", "Axford_Heavy_Cruiser", "Solomon_Battleship", "Container_Hauler"]
+
+
+println(ux)
 trainDF = transform(trainDF, @. :HullKey => ByRow(isequal(ux)) .=> Symbol(:HullKey_, ux))
 select!(trainDF, Not(:HullKey))
 
-# select!(trainDF, [:GameKey,:AccountId,:win,:shipKey,:OriginalPointCost])
+trainDF[:,80:end]
 
-# cols2Norm = []
+trainDF[2,:]
 
-# for c in 1:size(eachcol(trainDF)[5:end],1)
-
-#     col = trainDF[!,c+4]
-#     if maximum(col) > 1
-#         push!(cols2Norm,names(trainDF)[c+ 4])
-#     end
-# end
-
-# cols2Norm
-
-
-X = Float64.(Matrix(select(trainDF, Not(:GameKey,:AccountId,:win,:shipKey))))
-dt = fit(ZScoreTransform, X, dims=1)
-X2 = StatsBase.transform(dt, X)
+# X = Float64.(Matrix(select(trainDF, Not(:GameKey,:AccountId,:win,:shipKey))))
+# dt = fit(ZScoreTransform, X, dims=1)
+# X2 = StatsBase.transform(dt, X)
 
 # trainDFNorm = hcat(select(trainDF, [:GameKey,:AccountId,:win,:shipKey]), DataFrame(X2,names(trainDF)[5:end]))
 trainDFNorm = trainDF
@@ -314,6 +307,7 @@ trainDFNorm = trainDF
 toMekeShips = filter(x->x.nrow > 10, combine(groupby(trainDFNorm,[:GameKey,:AccountId,:win]),nrow))
 
 trainDFNorm = antijoin(trainDFNorm,toMekeShips,on = :GameKey)
+trainDFNorm[:,80:end]
 # trainDFNorm.win2 = trainDFNorm.win
 
 function getWeights(fleet)
@@ -337,31 +331,33 @@ sz = 860
 # collect(reshape(gw',1,sz))
 
 
-# train = [collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]
+train = [collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]
+outcome1 = [f.win[1] for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]
 
-# train2 = mapreduce(permutedims, hcat, train)
-train2
+@showprogress for i in 1:10
 
+    train = vcat(train,[collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])])
+    outcome1 = vcat(outcome1,[f.win[1] for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])])
 
-outcome1 = collect([f.win[1] for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]')
+end
 
-outcome = vcat(outcome1,.!outcome1)
+train
+
+train2 = mapreduce(permutedims, hcat, train)
+outcome = rotl90(hcat(outcome1,.!outcome1))
 
 
 trainDFNorm
 trainDFNorm.win
 
-train2 = rotl90(Matrix(trainDFNorm[!,5:end]))
+# train2 = rotl90(Matrix(trainDFNorm[!,5:end]))
 
 # noisy = rand(Float32, 2, 10000)                                  # 2×1000 Matrix{Float32}
 # truth = [xor(col[1]>0.5, col[2]>0.5) for col in eachcol(noisy)]   # 1000-element Vector{Bool}
 
 
-target = Flux.onehotbatch(trainDFNorm.win, [true, false])                   # 2×1000 OneHotMatrix
-loader = Flux.DataLoader((train2, target) |> gpu, batchsize=21000, shuffle=true)
-
-
-# loader = Flux.DataLoader((train2, outcome) |> gpu, batchsize=2048, shuffle=true)
+target = Flux.onehotbatch(outcome1, [true, false])                   # 2×1000 OneHotMatrix
+loader = Flux.DataLoader((train2, target) |> gpu, batchsize=50000, shuffle=true)
 
 
 # inputSz = size(train[1],2)*size(train[1],1)
@@ -375,15 +371,15 @@ model = Chain(
     Dense(inputSz => hiddenSz, tanh),   # activation function inside layerhiddenSz
     # BatchNorm(hiddenSz),
     Dense(hiddenSz => hiddenSz, tanh),   # activation function inside layerhiddenSz
-    Dense(hiddenSz => hiddenSz, tanh),   # activation function inside layerhiddenSz
+    # Dense(hiddenSz => hiddenSz, tanh),   # activation function inside layerhiddenSz
     # Dense(hiddenSz => hiddenSz, tanh),   # activation function inside layerhiddenSz
     # Dense(hiddenSz => hiddenSz, tanh),   # activation function inside layerhiddenSz
     # Dense(hiddenSz => hiddenSz, sigmoid),   # activation function inside layerhiddenSz
 
-    Dense(hiddenSz => 10),  # output layer
+    # Dense(hiddenSz => 10),  # output layer
     
     # BatchNorm(10),
-    Dense(10 => 2),
+    Dense(hiddenSz => 2),
     softmax
 ) |> gpu        # move model to GPU, if available
 
@@ -392,13 +388,13 @@ optim = Flux.setup(Flux.Adam(0.01), model)  # will store optimiser momentum, etc
 # Training loop, using the whole data set 1000 times:
 losses = []
 
-@showprogress for epoch in 1:5000
+@showprogress for epoch in 1:125
     for (x, y) in loader
         losss, grads = Flux.withgradient(model) do m
             # Evaluate model and loss inside gradient context:
             y_hat = m(x)
-            # Flux.logitcrossentropy(y_hat, y)
-            Flux.msle(y_hat, y)
+            Flux.logitcrossentropy(y_hat, y)
+            # Flux.msle(y_hat, y)
         end
         Flux.update!(optim, model, grads[1])
         # push!(grad, grads[1])
@@ -410,14 +406,34 @@ plot(losses)
 # losses[1:100]
 
 
-cor(train2[1,:],trainDFNorm.win)
+# cor(train2[1,:],trainDFNorm.win)
 
 optim # parameters, momenta and output have all changed
 train2[:,1:10000]
 
-out2 = model(train2[:,1:10000] |> gpu) |> cpu  # first row is prob. of true, second row p(false)
-probs2 = softmax(out2)      # normalise to get probabilities
-mean((probs2[1,:] .> 0.5) .== trainDFNorm.win[1:10000])  # accuracy 94% so far!
+out2 = model(train2 |> gpu) |> cpu  # first row is prob. of true, second row p(false)
+# probs2 = softmax(out2)      # normalise to get probabilities
+mean((out2[1,:] .> 0.5) .== outcome1)  # accuracy 94% so far!
+density(out2[1,:])
+
+out2[1]
+out2[2]
+out2[3]
+out2[4]
+out2[5]
+out2[6]
+out2[7]
+out2[8]
+
+out2 = Float64.(out2)
 
 
-out2
+look = filter(x->x.GameKey ==10902300151816910222,innerjoin(result,ship,on=[:GameKey,:AccountId]))
+
+
+
+
+m = model |> cpu
+jldsave("fleetModel.jld2";m)
+m = load_object("fleetModel.jld2")
+
