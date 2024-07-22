@@ -1,4 +1,4 @@
-using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, StatsBase, ProgressMeter, CSV, DuckDB
+using Pkg, XML, XMLDict, OrderedCollections, Dates, DataFrames, StatsBase, ProgressMeter, CSV, DuckDB, JLD2, Flux, Random, StatsPlots,Distances
 
 function showFields(u;fields = [])
     duds = []
@@ -114,14 +114,8 @@ function getElementValue(node::Node,nothing)::String
 return ""
 end
 
-savePath = "C:/Program Files (x86)/Steam/steamapps/common/Nebulous/Saves/Fleets"
-saves = readdir(savePath)
 
-fleetsLocal = joinpath.(savePath,readdir(savePath))
-filter!(x->endswith(uppercase(x),".FLEET"),fleetsLocal)
-fleetsLocal[55]
-
-function getFleet(fleetPath)
+function getFleet(fleetPath, _wr = 0.5)
 
     doc = read(fleetPath, Node)
     Fleet = findElement(doc,"Fleet")
@@ -215,9 +209,9 @@ function getFleet(fleetPath)
             
 
         end
-        println(missDf.MissileKey)
+        # println(missDf.MissileKey)
         missDf.MissileKey = rmJunkNames.(missDf.MissileKey)
-        println(missDf.MissileKey)
+        # println(missDf.MissileKey)
 
 
         missDf_final = combine(groupby(missDf,:MissileKey), :Quantity => sum)
@@ -481,6 +475,7 @@ function getFleet(fleetPath)
 
         # and make the missing values 0
         df = coalesce.(df,0)
+        df.win_rate .= _wr
 
         append!(fleetDF,df,promote=true)
     end
@@ -488,22 +483,9 @@ function getFleet(fleetPath)
 end
 
 
-fleet = getFleet(fleetsLocal[51])
-
-fleet.ammo_450mm_AP_Shell
 
 
-shipTypes = ["Sprinter_Corvette", "Raines_Frigate", "Vauxhall_Light_Cruiser", "Keystone_Destroyer", "Bulk_Hauler", "Tugboat", "Shuttle", "Bulk_Feeder", "Ocello_Cruiser", "Axford_Heavy_Cruiser", "Solomon_Battleship", "Container_Hauler"]
-
-fleet.HullKey = chop.(fleet.HullKey,head = 6,tail = 0)
-fleet.HullKey = replace.(fleet.HullKey," " => "_")
-
-fleet = transform(fleet, @. :HullKey => ByRow(isequal(shipTypes)) .=> Symbol(:HullKey_, shipTypes))
-
-fleet
-tips = hcat(eltype.(eachcol(fleet)),names(fleet))
-println(tips)
-
+# shipTypes = ["Sprinter_Corvette", "Raines_Frigate", "Vauxhall_Light_Cruiser", "Keystone_Destroyer", "Bulk_Hauler", "Tugboat", "Shuttle", "Bulk_Feeder", "Ocello_Cruiser", "Axford_Heavy_Cruiser", "Solomon_Battleship", "Container_Hauler"]
 
 function fleet2Vec(_fleet)
 
@@ -514,7 +496,7 @@ function fleet2Vec(_fleet)
     fleet.HullKey = chop.(fleet.HullKey,head = 6,tail = 0)
     fleet.HullKey = replace.(fleet.HullKey," " => "_")
 
-    println(fleet.HullKey[1] )
+    # println(fleet.HullKey[1] )
 
     fleet = transform(fleet, @. :HullKey => ByRow(isequal(shipTypes)) .=> Symbol(:HullKey_, shipTypes))
     select!(fleet, Not(:HullKey))
@@ -528,24 +510,94 @@ function fleet2Vec(_fleet)
         push!(fl,zeros(varSz))
     end
     flatten = mapreduce(permutedims, vcat, fl)
-    return collect(reshape(flatten[shuffle(1:end), :]',1,sz))[1,:]
-    # return fl
+    return collect(reshape(flatten[shuffle(1:end), :]',1,870))[1,:]
+    # return flatten
 end
 
 
-fleetsLocal[2]
-fleet = getFleet(fleetsLocal[2])
-names(fleet)
 
-allPerms = [fleet2Vec(fleet) for i in 1:100 ]
-allPerms = stack(allPerms)
+function scorefleet(x,wr = 0.5)
+
+    fleetName = split(x,'/')[end]
+    fleet = getFleet(x,wr)
+    allPerms = [fleet2Vec(fleet) for i in 1:1000 ]
+    allPerms = stack(allPerms)
+    
+    all = m(
+            allPerms
+    )[1,:]
+    
+    return mean(all), density(all, xlimits=(-0.1,1.1),title=fleetName,)
+end
+
+m = load_object("fleetModel.jld2")
 
 
-all = m(
-    allPerms
-)[1,:]
 
-density(all)
+savePath = "C:/Program Files (x86)/Steam/steamapps/common/Nebulous/Saves/Fleets/"
+saves = readdir(savePath)
 
-mean(all)
-mean(all)
+findall(x->startswith(uppercase(x),"VXXX"),saves)
+
+fleetsLocal = joinpath.(savePath,readdir(savePath))
+
+
+
+fleetsLocal[190]
+# fleet2Vec(getFleet(fleetsLocal[11]))
+
+
+# v = fleet2Vec(getFleet(fleetsLocal[21]))
+
+# dot.(v[1,:],v[2,:])
+
+wrVar = []
+for i in 0.1:0.1:1.0
+    push!(wrVar,scorefleet(fleetsLocal[190],i)[1])
+end
+
+wrVar
+
+look = scorefleet(fleetsLocal[190])[1]
+
+
+
+look[1]
+look[2]
+
+eg = fleet2Vec(getFleet(fleetsLocal[190]))
+
+# Cosine Similarity calculation
+function cosine_similarity(x, y)
+    return dot(x, y) / (norm(x) * norm(y))
+end
+
+
+
+allCS = []
+for i in eachcol(train2[:,1:1000])
+
+    push!(allCS,cosine_similarity(i,eg))
+
+end
+
+mean(allCS)
+
+
+
+allFleets = []
+
+for i in fleetsLocal
+    if endswith(i,".fleet")
+        push!(allFleets,scorefleet(i))
+    end
+end
+
+allFleets
+
+
+
+
+
+
+
