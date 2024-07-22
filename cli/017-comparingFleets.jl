@@ -1,4 +1,4 @@
-using JLD2, Dates, CSV, DuckDB, DataFrames, Flux, StatsBase, LinearAlgebra, Random, Plots, ProgressMeter, CUDA, TSne, StatsPlots
+using JLD2, Dates, CSV, DuckDB, DataFrames, Flux, StatsBase, LinearAlgebra, Random, Plots, ProgressMeter, CUDA, TSne, StatsPlots, Clustering
 
 """
 Gets the nth element of the vector x
@@ -170,6 +170,10 @@ allMissile.TotalCarried = Int64.(allMissile.TotalCarried)
 missileStack = stack(allMissile,[:MissileKey])
 missileStack.value = replace.(missileStack.value,' ' => '_','-' => '_','/' => '_')
 missileStack.value = string.("missile_",missileStack.value)
+
+unique(missileStack.value)
+
+filter!(x -> x.value != "missile_Stock_EA14_Chaff_Decoy" ,missileStack)
 missile_final = unstack(missileStack,:shipKey,:value,:TotalCarried)
 
 
@@ -270,10 +274,37 @@ tr  = DBInterface.execute(con, """
 
 """) |> DataFrame
 
+
+
+
 tr.win = tr.WinningTeam .== tr.TeamID
+
+# get the win rates of the players
+wr = combine(groupby(tr,:AccountId),nrow,:win=>sum)
+wr.win_rate = wr.win_sum ./ wr.nrow
+
+for i in eachrow(wr)
+    if wr.nrow == 1
+        wr.win_rate = 0.5
+    end
+end
+
+
+wr = select(wr,[:AccountId,:win_rate])
+
+# histogram(wr.win_rate)
+
+
 result = select(tr,[:GameKey,:AccountId,:win])
 
+
+
 trainDF = innerjoin(result,ship,on=[:GameKey,:AccountId])
+
+leftjoin!(trainDF,wr,on=:AccountId)
+trainDF.win_rate = coalesce.(trainDF.win_rate,0.5)
+
+
 # sort!(trainDF,:win)
 ship
 
@@ -291,6 +322,8 @@ ux = ["Sprinter_Corvette", "Raines_Frigate", "Vauxhall_Light_Cruiser", "Keystone
 println(ux)
 trainDF = transform(trainDF, @. :HullKey => ByRow(isequal(ux)) .=> Symbol(:HullKey_, ux))
 select!(trainDF, Not(:HullKey))
+
+println(names(trainDF))
 
 trainDF[:,80:end]
 
@@ -324,26 +357,30 @@ function getWeights(fleet)
 end
 
 
-sz = 860
+sz = 870
 # gw = getWeights(groupby(trainDFNorm,[:GameKey,:AccountId,:win])[1])
 # # want to turn this into a single row
 
 # collect(reshape(gw',1,sz))
 
 
-train = [collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]
+train = mapreduce(permutedims, hcat,[collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])])
 outcome1 = [f.win[1] for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]
 
-@showprogress for i in 1:10
+@showprogress for i in 1:20
 
-    train = vcat(train,[collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])])
+    train = vcat(train,
+    mapreduce(permutedims, hcat,
+            [collect(reshape(getWeights(f)[shuffle(1:end), :]',1,sz)) for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])]
+        )
+    )
     outcome1 = vcat(outcome1,[f.win[1] for f in groupby(trainDFNorm,[:GameKey,:AccountId,:win])])
 
 end
 
 train
 
-train2 = mapreduce(permutedims, hcat, train)
+# train2 = mapreduce(permutedims, hcat, train)
 outcome = rotl90(hcat(outcome1,.!outcome1))
 
 
@@ -354,6 +391,8 @@ trainDFNorm.win
 
 # noisy = rand(Float32, 2, 10000)                                  # 2×1000 Matrix{Float32}
 # truth = [xor(col[1]>0.5, col[2]>0.5) for col in eachcol(noisy)]   # 1000-element Vector{Bool}
+
+
 
 
 target = Flux.onehotbatch(outcome1, [true, false])                   # 2×1000 OneHotMatrix
@@ -388,7 +427,7 @@ optim = Flux.setup(Flux.Adam(0.01), model)  # will store optimiser momentum, etc
 # Training loop, using the whole data set 1000 times:
 losses = []
 
-@showprogress for epoch in 1:125
+@showprogress for epoch in 1:500
     for (x, y) in loader
         losss, grads = Flux.withgradient(model) do m
             # Evaluate model and loss inside gradient context:
